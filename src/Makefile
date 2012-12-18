@@ -24,7 +24,7 @@ camera_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 camera: $(camera_OBJS)
 	$(CC) -o camera $(camera_OBJS) $(camera_LDFLAGS)
 
-camera.o: camera.c
+camera.o: camera.c camera.h
 	$(CC) $(camera_CFLAGS) -c camera.c
 
 main.o: main.c camera.h
@@ -37,7 +37,10 @@ distclean: clean
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
+	$(MKDIR) $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 0755 -- camera $(DESTDIR)$(BINDIR)/camera
 
 uninstall:
+	$(RM) -- $(DESTDIR)$(BINDIR)/camera
 
 .PHONY: all clean distclean install uninstall
