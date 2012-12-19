@@ -1,17 +1,19 @@
 /* $Id$ */
-/* Copyright (c) 2012 Pierre Pronchery <khorben@defora.org> */
+static char const _copyright[] =
+"Copyright (c) 2012 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Camera */
-/* This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+static char const _license[] =
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, version 3 of the License.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
 
 
@@ -27,7 +29,9 @@
 #include <errno.h>
 #include <gtk/gtk.h>
 #include <System.h>
+#include <Desktop.h>
 #include "camera.h"
+#include "../config.h"
 
 
 /* Camera */
@@ -54,6 +58,36 @@ static gboolean _camera_on_closex(gpointer data);
 static gboolean _camera_on_open(gpointer data);
 static gboolean _camera_on_refresh(gpointer data);
 
+static void _camera_on_file_close(gpointer data);
+static void _camera_on_help_about(gpointer data);
+
+
+/* constants */
+static char const * _authors[] =
+{
+	"Pierre Pronchery <khorben@defora.org>",
+	NULL
+};
+
+static const DesktopMenu _camera_menu_file[] =
+{
+	{ "_Close", G_CALLBACK(_camera_on_file_close), GTK_STOCK_CLOSE, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static const DesktopMenu _camera_menu_help[] =
+{
+	{ "_About", G_CALLBACK(_camera_on_help_about), GTK_STOCK_ABOUT, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static const DesktopMenubar _camera_menubar[] =
+{
+	{ "_File", _camera_menu_file },
+	{ "_Help", _camera_menu_help },
+	{ NULL, NULL }
+};
+
 
 /* public */
 /* functions */
@@ -61,7 +95,9 @@ static gboolean _camera_on_refresh(gpointer data);
 Camera * camera_new(void)
 {
 	Camera * camera;
+	GtkAccelGroup * group;
 	GtkWidget * vbox;
+	GtkWidget * widget;
 
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
@@ -69,7 +105,9 @@ Camera * camera_new(void)
 	camera->buffer = NULL;
 	camera->source = 0;
 	/* create the window */
+	group = gtk_accel_group_new();
 	camera->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_add_accel_group(GTK_WINDOW(camera->window), group);
 #if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-video");
 #endif
@@ -78,6 +116,9 @@ Camera * camera_new(void)
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camera_on_closex), camera);
 	vbox = gtk_vbox_new(FALSE, 0);
+	/* menubar */
+	widget = desktop_menubar_create(_camera_menubar, camera, group);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	camera->area = gtk_drawing_area_new();
 	gtk_box_pack_start(GTK_BOX(vbox), camera->area, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(camera->window), vbox);
@@ -202,4 +243,35 @@ static gboolean _camera_on_refresh(gpointer data)
 	}
 	/* FIXME implement the rest */
 	return TRUE;
+}
+
+
+/* camera_on_file_close */
+static void _camera_on_file_close(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_closex(camera);
+}
+
+
+/* camera_on_help_about */
+static void _camera_on_help_about(gpointer data)
+{
+	Camera * camera = data;
+	GtkWidget * widget;
+
+	widget = desktop_about_dialog_new();
+	gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(
+				camera->window));
+	desktop_about_dialog_set_authors(widget, _authors);
+	desktop_about_dialog_set_comments(widget,
+			"Simple camera application for the DeforaOS desktop");
+	desktop_about_dialog_set_copyright(widget, _copyright);
+	desktop_about_dialog_set_license(widget, _license);
+	desktop_about_dialog_set_logo_icon_name(widget, "camera-video");
+	desktop_about_dialog_set_name(widget, PACKAGE);
+	desktop_about_dialog_set_version(widget, VERSION);
+	gtk_dialog_run(GTK_DIALOG(widget));
+	gtk_widget_destroy(widget);
 }
