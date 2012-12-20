@@ -39,6 +39,7 @@ static char const _license[] =
 /* types */
 struct _Camera
 {
+	String * device;
 	int fd;
 	guint source;
 	Buffer * buffer;
@@ -103,7 +104,7 @@ static const DesktopMenubar _camera_menubar[] =
 /* public */
 /* functions */
 /* camera_new */
-Camera * camera_new(void)
+Camera * camera_new(char const * device)
 {
 	Camera * camera;
 	GtkAccelGroup * group;
@@ -112,9 +113,19 @@ Camera * camera_new(void)
 
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
+	if(device == NULL)
+		device = "/dev/video0";
+	camera->device = string_new(device);
 	camera->fd = -1;
 	camera->buffer = NULL;
 	camera->source = 0;
+	camera->window = NULL;
+	/* check for errors */
+	if(camera->device == NULL)
+	{
+		camera_delete(camera);
+		return NULL;
+	}
 	/* create the window */
 	group = gtk_accel_group_new();
 	camera->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -174,6 +185,7 @@ void camera_delete(Camera * camera)
 	if(camera->fd >= 0)
 		close(camera->fd);
 	buffer_delete(camera->buffer);
+	string_delete(camera->device);
 	object_delete(camera);
 }
 
@@ -302,7 +314,6 @@ static gboolean _camera_on_open(gpointer data)
 {
 	Camera * camera = data;
 	/* XXX let this be configurable */
-	char const device[] = "/dev/video0";
 	struct v4l2_capability cap;
 	struct v4l2_cropcap cropcap;
 	struct v4l2_crop crop;
@@ -310,7 +321,7 @@ static gboolean _camera_on_open(gpointer data)
 	char buf[128];
 
 	camera->source = 0;
-	camera->fd = open(device, O_RDWR);
+	camera->fd = open(camera->device, O_RDWR);
 	camera->buffer = buffer_new(0, NULL);
 	camera->source = 0;
 	/* check for errors */
@@ -320,7 +331,7 @@ static gboolean _camera_on_open(gpointer data)
 			/* FIXME also implement mmap() and streaming */
 			|| (cap.capabilities & V4L2_CAP_READWRITE) == 0)
 	{
-		snprintf(buf, sizeof(buf), "%s: %s", device,
+		snprintf(buf, sizeof(buf), "%s: %s", camera->device,
 				"Could not open the video capture device");
 		_camera_error(camera, buf, 1);
 		return FALSE;

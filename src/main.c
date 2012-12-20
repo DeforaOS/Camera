@@ -25,18 +25,18 @@
 
 /* private */
 /* prototypes */
-static int _camera(void);
+static int _camera(char const * device);
 
 static int _usage(void);
 
 
 /* functions */
 /* camera */
-static int _camera(void)
+static int _camera(char const * device)
 {
 	Camera * camera;
 
-	if((camera = camera_new()) == NULL)
+	if((camera = camera_new(device)) == NULL)
 		return error_print(PACKAGE);
 	gtk_main();
 	camera_delete(camera);
@@ -47,7 +47,8 @@ static int _camera(void)
 /* usage */
 static int _usage(void)
 {
-	fputs("Usage: camera\n", stderr);
+	fputs("Usage: camera [-d device]\n"
+"  -d	Video device to open\n", stderr);
 	return 1;
 }
 
@@ -58,13 +59,17 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
+	char const * device = NULL;
 
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "")) != -1)
+	while((o = getopt(argc, argv, "d:")) != -1)
 		switch(o)
 		{
+			case 'd':
+				device = optarg;
+				break;
 			default:
 				return _usage();
 		}
-	return (_camera() == 0) ? 0 : 2;
+	return (_camera(device) == 0) ? 0 : 2;
 }

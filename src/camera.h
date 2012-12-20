@@ -13,7 +13,7 @@ typedef struct _Camera Camera;
 
 
 /* functions */
-Camera * camera_new(void);
+Camera * camera_new(char const * device);
 void camera_delete(Camera * camera);
 
 #endif /* !CAMERA_CAMERA_H */
