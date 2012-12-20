@@ -48,12 +48,14 @@ struct _Camera
 	Buffer * buffer;
 
 	/* widgets */
+	GdkGC * gc;
 	GtkWidget * window;
 #if GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * infobar;
 	GtkWidget * infobar_label;
 #endif
 	GtkWidget * area;
+	GtkAllocation area_allocation;
 	GdkPixmap * pixmap;
 };
 
@@ -123,6 +125,7 @@ Camera * camera_new(char const * device)
 	camera->fd = -1;
 	camera->buffer = NULL;
 	camera->source = 0;
+	camera->gc = NULL;
 	camera->window = NULL;
 	/* check for errors */
 	if(camera->device == NULL)
@@ -133,6 +136,8 @@ Camera * camera_new(char const * device)
 	/* create the window */
 	group = gtk_accel_group_new();
 	camera->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_widget_realize(camera->window);
+	camera->gc = gdk_gc_new(camera->window->window); /* XXX */
 	gtk_window_add_accel_group(GTK_WINDOW(camera->window), group);
 #if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-video");
@@ -182,6 +187,8 @@ void camera_delete(Camera * camera)
 {
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
+	if(camera->gc != NULL)
+		g_object_unref(camera->gc);
 	if(camera->window != NULL)
 		gtk_widget_destroy(camera->window);
 	if(camera->source != 0)
@@ -294,25 +301,17 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 {
 	/* XXX this code is inspired from GQcam */
 	Camera * camera = data;
-	GtkAllocation allocation;
-	GdkGC * gc;
-	GdkColor black = { 0, 0, 0, 0 };
-	GdkColor white = { 0xffffffff, 0xffff, 0xffff, 0xffff };
+	GtkAllocation * allocation = &camera->area_allocation;
 
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
 	/* FIXME requires Gtk+ 2.18 */
-	gtk_widget_get_allocation(widget, &allocation);
-	camera->pixmap = gdk_pixmap_new(widget->window, allocation.width,
-			allocation.height, -1);
-	/* FIXME this code is untested */
-	gc = gdk_gc_new(widget->window);
-	gdk_gc_set_background(gc, &white);
-	gdk_gc_set_foreground(gc, &black);
+	gtk_widget_get_allocation(widget, allocation);
+	camera->pixmap = gdk_pixmap_new(widget->window, allocation->width,
+			allocation->height, -1);
 	/* FIXME is it not better to scale the previous pixmap for now? */
-	gdk_draw_rectangle(camera->pixmap, gc, TRUE, 0, 0, allocation.width,
-			allocation.height);
-	g_object_unref(gc);
+	gdk_draw_rectangle(camera->pixmap, camera->gc, TRUE, 0, 0,
+			allocation->width, allocation->height);
 	return TRUE;
 }
 
@@ -323,18 +322,12 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 {
 	/* XXX this code is inspired from GQcam */
 	Camera * camera = data;
-	GtkAllocation allocation;
-	GdkGC * gc;
 
-	/* FIXME requires Gtk+ 2.18 */
-	gtk_widget_get_allocation(widget, &allocation);
 	/* FIXME this code is untested */
-	gc = gdk_gc_new(widget->window);
-	gdk_draw_pixmap(widget->window, gc, camera->pixmap,
+	gdk_draw_pixmap(widget->window, camera->gc, camera->pixmap,
 			event->area.x, event->area.y,
 			event->area.x, event->area.y,
 			event->area.width, event->area.height);
-	g_object_unref(gc);
 	return FALSE;
 }
 
@@ -429,12 +422,17 @@ static gboolean _camera_on_open(gpointer data)
 static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
+	GtkAllocation * allocation = &camera->area_allocation;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
 	camera->source = 0;
 	/* FIXME really implement */
+	gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0, allocation->width,
+			allocation->height, GDK_RGB_DITHER_NORMAL,
+			(unsigned char *)buffer_get_data(camera->buffer),
+			allocation->width * 3);
 	camera->source = g_timeout_add(1000, _camera_on_can_read, camera);
 	return FALSE;
 }
