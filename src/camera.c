@@ -25,6 +25,9 @@ static char const _license[] =
 #endif
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef DEBUG
+# include <stdio.h>
+#endif
 #include <string.h>
 #include <errno.h>
 #include <gtk/gtk.h>
@@ -62,6 +65,7 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 		void * data);
 
 /* callbacks */
+static gboolean _camera_on_can_read(gpointer data);
 static gboolean _camera_on_closex(gpointer data);
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
@@ -244,6 +248,32 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 
 
 /* callbacks */
+/* camera_on_can_read */
+static gboolean _camera_on_can_read(gpointer data)
+{
+	Camera * camera = data;
+
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	camera->source = 0;
+	/* FIXME no longer block on read() */
+	if(read(camera->fd, buffer_get_data(camera->buffer),
+				buffer_get_size(camera->buffer)) <= 0)
+	{
+		/* this error can be ignored */
+		if(errno == EAGAIN)
+			return TRUE;
+		close(camera->fd);
+		camera->fd = -1;
+		_camera_error(camera, strerror(errno), 1);
+		return FALSE;
+	}
+	camera->source = g_idle_add(_camera_on_refresh, camera);
+	return FALSE;
+}
+
+
 /* camera_on_closex */
 static gboolean _camera_on_closex(gpointer data)
 {
@@ -309,6 +339,37 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 }
 
 
+/* camera_on_file_close */
+static void _camera_on_file_close(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_closex(camera);
+}
+
+
+/* camera_on_help_about */
+static void _camera_on_help_about(gpointer data)
+{
+	Camera * camera = data;
+	GtkWidget * widget;
+
+	widget = desktop_about_dialog_new();
+	gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(
+				camera->window));
+	desktop_about_dialog_set_authors(widget, _authors);
+	desktop_about_dialog_set_comments(widget,
+			"Simple camera application for the DeforaOS desktop");
+	desktop_about_dialog_set_copyright(widget, _copyright);
+	desktop_about_dialog_set_license(widget, _license);
+	desktop_about_dialog_set_logo_icon_name(widget, "camera-video");
+	desktop_about_dialog_set_name(widget, PACKAGE);
+	desktop_about_dialog_set_version(widget, VERSION);
+	gtk_dialog_run(GTK_DIALOG(widget));
+	gtk_widget_destroy(widget);
+}
+
+
 /* camera_on_open */
 static gboolean _camera_on_open(gpointer data)
 {
@@ -320,6 +381,9 @@ static gboolean _camera_on_open(gpointer data)
 	struct v4l2_format format;
 	char buf[128];
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() \"%s\"\n", __func__, camera->device);
+#endif
 	camera->source = 0;
 	camera->fd = open(camera->device, O_RDWR);
 	camera->buffer = buffer_new(0, NULL);
@@ -355,9 +419,8 @@ static gboolean _camera_on_open(gpointer data)
 		buffer_set_size(camera->buffer, format.fmt.pix.sizeimage);
 	gtk_widget_set_size_request(camera->area, format.fmt.pix.width,
 			format.fmt.pix.height);
-	if(_camera_on_refresh(camera) == TRUE)
-		camera->source = g_timeout_add(1000, _camera_on_refresh,
-				camera);
+	/* FIXME register only if can really be read */
+	_camera_on_can_read(camera);
 	return FALSE;
 }
 
@@ -367,49 +430,11 @@ static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
 
-	/* FIXME no longer block on read() */
-	if(read(camera->fd, buffer_get_data(camera->buffer),
-				buffer_get_size(camera->buffer)) <= 0)
-	{
-		/* this error can be ignored */
-		if(errno == EAGAIN)
-			return TRUE;
-		close(camera->fd);
-		camera->fd = -1;
-		_camera_error(camera, strerror(errno), 1);
-		return FALSE;
-	}
-	/* FIXME implement the rest */
-	return TRUE;
-}
-
-
-/* camera_on_file_close */
-static void _camera_on_file_close(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_closex(camera);
-}
-
-
-/* camera_on_help_about */
-static void _camera_on_help_about(gpointer data)
-{
-	Camera * camera = data;
-	GtkWidget * widget;
-
-	widget = desktop_about_dialog_new();
-	gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(
-				camera->window));
-	desktop_about_dialog_set_authors(widget, _authors);
-	desktop_about_dialog_set_comments(widget,
-			"Simple camera application for the DeforaOS desktop");
-	desktop_about_dialog_set_copyright(widget, _copyright);
-	desktop_about_dialog_set_license(widget, _license);
-	desktop_about_dialog_set_logo_icon_name(widget, "camera-video");
-	desktop_about_dialog_set_name(widget, PACKAGE);
-	desktop_about_dialog_set_version(widget, VERSION);
-	gtk_dialog_run(GTK_DIALOG(widget));
-	gtk_widget_destroy(widget);
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
+	camera->source = 0;
+	/* FIXME really implement */
+	camera->source = g_timeout_add(1000, _camera_on_can_read, camera);
+	return FALSE;
 }
