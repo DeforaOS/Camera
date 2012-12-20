@@ -50,6 +50,8 @@ struct _Camera
 
 
 /* prototypes */
+static int _camera_error(Camera * camera, char const * message, int ret);
+
 static int _camera_ioctl(Camera * camera, unsigned long request,
 		void * data);
 
@@ -143,6 +145,37 @@ void camera_delete(Camera * camera)
 
 
 /* private */
+/* functions */
+/* camera_error */
+static int _error_text(char const * message, int ret);
+
+static int _camera_error(Camera * camera, char const * message, int ret)
+{
+	GtkWidget * dialog;
+
+	if(camera == NULL)
+		return _error_text(message, ret);
+	dialog = gtk_message_dialog_new(GTK_WINDOW(camera->window),
+			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+#if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", "Error");
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+#endif
+			"%s", message);
+	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+	return ret;
+}
+
+static int _error_text(char const * message, int ret)
+{
+	fprintf(stderr, "%s: %s\n", PACKAGE, message);
+	return ret;
+}
+
+
 /* camera_ioctl */
 static int _camera_ioctl(Camera * camera, unsigned long request,
 		void * data)
@@ -182,6 +215,7 @@ static gboolean _camera_on_open(gpointer data)
 	struct v4l2_cropcap cropcap;
 	struct v4l2_crop crop;
 	struct v4l2_format format;
+	char buf[128];
 
 	camera->source = 0;
 	camera->fd = open(device, O_RDWR);
@@ -194,9 +228,9 @@ static gboolean _camera_on_open(gpointer data)
 			/* FIXME also implement mmap() and streaming */
 			|| (cap.capabilities & V4L2_CAP_READWRITE) == 0)
 	{
-		error_set_print("camera", 1, "%s: %s", device,
+		snprintf(buf, sizeof(buf), "%s: %s", device,
 				"Could not open the video capture device");
-		camera->source = g_timeout_add(1000, _camera_on_open, camera);
+		_camera_error(camera, buf, 1);
 		return FALSE;
 	}
 	/* reset cropping */
@@ -239,6 +273,7 @@ static gboolean _camera_on_refresh(gpointer data)
 			return TRUE;
 		close(camera->fd);
 		camera->fd = -1;
+		_camera_error(camera, strerror(errno), 1);
 		return FALSE;
 	}
 	/* FIXME implement the rest */
