@@ -45,6 +45,10 @@ struct _Camera
 
 	/* widgets */
 	GtkWidget * window;
+#if GTK_CHECK_VERSION(2, 18, 0)
+	GtkWidget * infobar;
+	GtkWidget * infobar_label;
+#endif
 	GtkWidget * area;
 };
 
@@ -121,6 +125,24 @@ Camera * camera_new(void)
 	/* menubar */
 	widget = desktop_menubar_create(_camera_menubar, camera, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+#if GTK_CHECK_VERSION(2, 18, 0)
+	/* errors */
+	camera->infobar = gtk_info_bar_new_with_buttons(GTK_STOCK_CLOSE,
+			GTK_RESPONSE_CLOSE, NULL);
+	gtk_info_bar_set_message_type(GTK_INFO_BAR(camera->infobar),
+			GTK_MESSAGE_ERROR);
+	g_signal_connect(camera->infobar, "close", G_CALLBACK(gtk_widget_hide),
+			NULL);
+	g_signal_connect(camera->infobar, "response", G_CALLBACK(
+				gtk_widget_hide), NULL);
+	widget = gtk_info_bar_get_content_area(GTK_INFO_BAR(camera->infobar));
+	camera->infobar_label = gtk_label_new(NULL);
+	gtk_widget_show(camera->infobar_label);
+	gtk_box_pack_start(GTK_BOX(widget), camera->infobar_label, TRUE, TRUE,
+			0);
+	gtk_widget_set_no_show_all(camera->infobar, TRUE);
+	gtk_box_pack_start(GTK_BOX(vbox), camera->infobar, FALSE, TRUE, 0);
+#endif
 	camera->area = gtk_drawing_area_new();
 	gtk_box_pack_start(GTK_BOX(vbox), camera->area, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(camera->window), vbox);
@@ -151,21 +173,28 @@ static int _error_text(char const * message, int ret);
 
 static int _camera_error(Camera * camera, char const * message, int ret)
 {
+#if !GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * dialog;
+#endif
 
 	if(camera == NULL)
 		return _error_text(message, ret);
+#if GTK_CHECK_VERSION(2, 18, 0)
+	gtk_label_set_text(GTK_LABEL(camera->infobar_label), message);
+	gtk_widget_show(camera->infobar);
+#else
 	dialog = gtk_message_dialog_new(GTK_WINDOW(camera->window),
 			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
 			GTK_BUTTONS_CLOSE,
-#if GTK_CHECK_VERSION(2, 6, 0)
+# if GTK_CHECK_VERSION(2, 6, 0)
 			"%s", "Error");
 	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
-#endif
+# endif
 			"%s", message);
 	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
+#endif
 	return ret;
 }
 
