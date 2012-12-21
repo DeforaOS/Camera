@@ -433,6 +433,9 @@ static gboolean _camera_on_refresh(gpointer data)
 			allocation->height, GDK_RGB_DITHER_NORMAL,
 			(unsigned char *)buffer_get_data(camera->buffer),
 			allocation->width * 3);
+	gtk_widget_queue_draw_area(camera->area, 0, 0,
+			camera->area_allocation.width,
+			camera->area_allocation.height);
 	camera->source = g_timeout_add(1000, _camera_on_can_read, camera);
 	return FALSE;
 }
