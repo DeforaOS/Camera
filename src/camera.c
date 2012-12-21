@@ -25,6 +25,7 @@ static char const _license[] =
 #endif
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #ifdef DEBUG
 # include <stdio.h>
 #endif
@@ -43,9 +44,13 @@ static char const _license[] =
 struct _Camera
 {
 	String * device;
+
 	int fd;
+	struct v4l2_format format;
+	char * buffer;
+	size_t buffer_cnt;
+
 	guint source;
-	Buffer * buffer;
 
 	/* widgets */
 	GdkGC * gc;
@@ -124,6 +129,7 @@ Camera * camera_new(char const * device)
 	camera->device = string_new(device);
 	camera->fd = -1;
 	camera->buffer = NULL;
+	camera->buffer_cnt = 0;
 	camera->source = 0;
 	camera->gc = NULL;
 	camera->window = NULL;
@@ -195,7 +201,7 @@ void camera_delete(Camera * camera)
 		g_source_remove(camera->source);
 	if(camera->fd >= 0)
 		close(camera->fd);
-	buffer_delete(camera->buffer);
+	free(camera->buffer);
 	string_delete(camera->device);
 	object_delete(camera);
 }
@@ -259,14 +265,14 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 static gboolean _camera_on_can_read(gpointer data)
 {
 	Camera * camera = data;
+	ssize_t s;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
 	camera->source = 0;
 	/* FIXME no longer block on read() */
-	if(read(camera->fd, buffer_get_data(camera->buffer),
-				buffer_get_size(camera->buffer)) <= 0)
+	if((s = read(camera->fd, camera->buffer, camera->buffer_cnt)) <= 0)
 	{
 		/* this error can be ignored */
 		if(errno == EAGAIN)
@@ -276,6 +282,10 @@ static gboolean _camera_on_can_read(gpointer data)
 		_camera_error(camera, strerror(errno), 1);
 		return FALSE;
 	}
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %lu %ld\n", __func__,
+			camera->buffer_cnt, s);
+#endif
 	camera->source = g_idle_add(_camera_on_refresh, camera);
 	return FALSE;
 }
@@ -307,6 +317,10 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		g_object_unref(camera->pixmap);
 	/* FIXME requires Gtk+ 2.18 */
 	gtk_widget_get_allocation(widget, allocation);
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %dx%d\n", __func__, allocation->width,
+			allocation->height);
+#endif
 	camera->pixmap = gdk_pixmap_new(widget->window, allocation->width,
 			allocation->height, -1);
 	/* FIXME is it not better to scale the previous pixmap for now? */
@@ -371,7 +385,7 @@ static gboolean _camera_on_open(gpointer data)
 	struct v4l2_capability cap;
 	struct v4l2_cropcap cropcap;
 	struct v4l2_crop crop;
-	struct v4l2_format format;
+	char * p;
 	char buf[128];
 
 #ifdef DEBUG
@@ -379,10 +393,9 @@ static gboolean _camera_on_open(gpointer data)
 #endif
 	camera->source = 0;
 	camera->fd = open(camera->device, O_RDWR);
-	camera->buffer = buffer_new(0, NULL);
 	camera->source = 0;
 	/* check for errors */
-	if(camera->buffer == NULL || camera->fd < 0
+	if(camera->fd < 0
 			|| _camera_ioctl(camera, VIDIOC_QUERYCAP, &cap) == -1
 			|| (cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0
 			/* FIXME also implement mmap() and streaming */
@@ -406,12 +419,28 @@ static gboolean _camera_on_open(gpointer data)
 			error_set_code(1, "Cropping not supported");
 	}
 	/* obtain the current format */
-	format.fmt.pix.width = 100;
-	format.fmt.pix.height = 75;
-	if(_camera_ioctl(camera, VIDIOC_G_FMT, &format) != -1)
-		buffer_set_size(camera->buffer, format.fmt.pix.sizeimage);
-	gtk_widget_set_size_request(camera->area, format.fmt.pix.width,
-			format.fmt.pix.height);
+	if(_camera_ioctl(camera, VIDIOC_G_FMT, &camera->format) == -1
+			|| camera->format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE
+			|| (p = realloc(camera->buffer,
+					camera->format.fmt.pix.sizeimage))
+			== NULL)
+	{
+		snprintf(buf, sizeof(buf), "%s: %s", camera->device,
+				"Could not open the video capture device");
+		_camera_error(camera, buf, 1);
+		close(camera->fd);
+		camera->fd = -1;
+		return FALSE;
+	}
+	camera->buffer = p;
+	camera->buffer_cnt = camera->format.fmt.pix.sizeimage;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %dx%d\n", __func__,
+			camera->format.fmt.pix.width,
+			camera->format.fmt.pix.height);
+#endif
+	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
+			camera->format.fmt.pix.height);
 	/* FIXME register only if can really be read */
 	_camera_on_can_read(camera);
 	return FALSE;
@@ -428,14 +457,13 @@ static gboolean _camera_on_refresh(gpointer data)
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
 	camera->source = 0;
-	/* FIXME really implement */
 	gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0, allocation->width,
 			allocation->height, GDK_RGB_DITHER_NORMAL,
-			(unsigned char *)buffer_get_data(camera->buffer),
-			allocation->width * 3);
+			(unsigned char *)camera->buffer,
+			camera->format.fmt.pix.bytesperline);
 	gtk_widget_queue_draw_area(camera->area, 0, 0,
 			camera->area_allocation.width,
 			camera->area_allocation.height);
-	camera->source = g_timeout_add(1000, _camera_on_can_read, camera);
+	camera->source = g_idle_add(_camera_on_can_read, camera);
 	return FALSE;
 }
