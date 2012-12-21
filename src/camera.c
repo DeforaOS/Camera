@@ -378,62 +378,31 @@ static void _camera_on_help_about(gpointer data)
 
 
 /* camera_on_open */
+static int _open_setup(Camera * camera);
+
 static gboolean _camera_on_open(gpointer data)
 {
 	Camera * camera = data;
-	/* XXX let this be configurable */
-	struct v4l2_capability cap;
-	struct v4l2_cropcap cropcap;
-	struct v4l2_crop crop;
-	char * p;
-	char buf[128];
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() \"%s\"\n", __func__, camera->device);
 #endif
 	camera->source = 0;
-	camera->fd = open(camera->device, O_RDWR);
-	camera->source = 0;
-	/* check for errors */
-	if(camera->fd < 0
-			|| _camera_ioctl(camera, VIDIOC_QUERYCAP, &cap) == -1
-			|| (cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0
-			/* FIXME also implement mmap() and streaming */
-			|| (cap.capabilities & V4L2_CAP_READWRITE) == 0)
+	if((camera->fd = open(camera->device, O_RDWR)) < 0)
 	{
-		snprintf(buf, sizeof(buf), "%s: %s", camera->device,
-				"Could not open the video capture device");
-		_camera_error(camera, buf, 1);
+		error_set("%s: %s (%s)", camera->device,
+				"Could not open the video capture device",
+				strerror(errno));
+		_camera_error(camera, error_get(), 1);
 		return FALSE;
 	}
-	/* reset cropping */
-	memset(&cropcap, 0, sizeof(cropcap));
-	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if(_camera_ioctl(camera, VIDIOC_CROPCAP, &cropcap) == 0)
+	if(_open_setup(camera) != 0)
 	{
-		/* reset to default */
-		crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		crop.c = cropcap.defrect;
-		if(_camera_ioctl(camera, VIDIOC_S_CROP, &crop) == -1
-				&& errno == EINVAL)
-			error_set_code(1, "Cropping not supported");
-	}
-	/* obtain the current format */
-	if(_camera_ioctl(camera, VIDIOC_G_FMT, &camera->format) == -1
-			|| camera->format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE
-			|| (p = realloc(camera->buffer,
-					camera->format.fmt.pix.sizeimage))
-			== NULL)
-	{
-		snprintf(buf, sizeof(buf), "%s: %s", camera->device,
-				"Could not open the video capture device");
-		_camera_error(camera, buf, 1);
+		_camera_error(camera, error_get(), 1);
 		close(camera->fd);
 		camera->fd = -1;
 		return FALSE;
 	}
-	camera->buffer = p;
-	camera->buffer_cnt = camera->format.fmt.pix.sizeimage;
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() %dx%d\n", __func__,
 			camera->format.fmt.pix.width,
@@ -446,24 +415,136 @@ static gboolean _camera_on_open(gpointer data)
 	return FALSE;
 }
 
+static int _open_setup(Camera * camera)
+{
+	struct v4l2_capability cap;
+	struct v4l2_cropcap cropcap;
+	struct v4l2_crop crop;
+	char * p;
+
+	/* check for errors */
+	if(_camera_ioctl(camera, VIDIOC_QUERYCAP, &cap) == -1)
+		return -error_set_code(1, "%s: %s (%s)", camera->device,
+				"Could not obtain the capabilities",
+				strerror(errno));
+	if((cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0
+			/* FIXME also implement mmap() and streaming */
+			|| (cap.capabilities & V4L2_CAP_READWRITE) == 0)
+		return -error_set_code(1, "%s: %s", camera->device,
+				"Unsupported capabilities");
+	/* reset cropping */
+	memset(&cropcap, 0, sizeof(cropcap));
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if(_camera_ioctl(camera, VIDIOC_CROPCAP, &cropcap) == 0)
+	{
+		/* reset to default */
+		crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		crop.c = cropcap.defrect;
+		if(_camera_ioctl(camera, VIDIOC_S_CROP, &crop) == -1
+				&& errno == EINVAL)
+			/* XXX ignore this error for now */
+			error_set_code(1, "%s: %s", camera->device,
+					"Cropping not supported");
+	}
+	/* obtain the current format */
+	if(_camera_ioctl(camera, VIDIOC_G_FMT, &camera->format) == -1)
+		return -error_set_code(1, "%s: %s", camera->device,
+				"Could not obtain the video capture format");
+	/* check the current format */
+	if(camera->format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+		return -error_set_code(1, "%s: %s", camera->device,
+				"Unsupported video capture type");
+	/* FIXME try to obtain a RGB24 format if possible */
+	if((p = realloc(camera->buffer, camera->format.fmt.pix.sizeimage))
+			== NULL)
+		return -error_set_code(1, "%s: %s", camera->device,
+				strerror(errno));
+	camera->buffer = p;
+	camera->buffer_cnt = camera->format.fmt.pix.sizeimage;
+	return 0;
+}
+
 
 /* camera_on_refresh */
+static void _refresh_convert(Camera * camera, unsigned char * buf);
+
 static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
 	GtkAllocation * allocation = &camera->area_allocation;
+	/* XXX pre-allocate this buffer */
+	unsigned char buf[camera->format.fmt.pix.width
+		* camera->format.fmt.pix.height * 3];
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s()\n", __func__);
+	fprintf(stderr, "DEBUG: %s() 0x%x\n", __func__,
+			camera->format.fmt.pix.pixelformat);
 #endif
 	camera->source = 0;
+	_refresh_convert(camera, buf);
 	gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0, allocation->width,
 			allocation->height, GDK_RGB_DITHER_NORMAL,
-			(unsigned char *)camera->buffer,
-			camera->format.fmt.pix.bytesperline);
+			buf, camera->format.fmt.pix.width * 3);
 	gtk_widget_queue_draw_area(camera->area, 0, 0,
 			camera->area_allocation.width,
 			camera->area_allocation.height);
 	camera->source = g_idle_add(_camera_on_can_read, camera);
 	return FALSE;
+}
+
+static void _refresh_convert(Camera * camera, unsigned char * buf)
+{
+	const int amp = 255;
+	size_t i;
+	size_t j;
+	unsigned char y;
+	unsigned char u;
+	unsigned char v;
+	double r;
+	double g;
+	double b;
+
+	switch(camera->format.fmt.pix.pixelformat)
+	{
+		case V4L2_PIX_FMT_YUYV:
+			for(i = 0, j = 0; i + 3 < camera->buffer_cnt;
+					i += 4, j += 6)
+			{
+				/* pixel 0 */
+				y = camera->buffer[i];
+				u = camera->buffer[i + 1];
+				v = camera->buffer[i + 3];
+				r = amp * (0.004565 * y + 0.007935 * u - 1.088);
+				g = amp * (0.004565 * y - 0.001542 * u
+						- 0.003183 * v + 0.531);
+				b = amp * (0.004565 * y + 0.000001 * u
+						+ 0.006250 * v - 0.872);
+				r = (r < 0) ? 0 : ((r > 255) ? 255 : r);
+				g = (g < 0) ? 0 : ((g > 255) ? 255 : g);
+				b = (b < 0) ? 0 : ((b > 255) ? 255 : b);
+				buf[j] = b;
+				buf[j + 1] = g;
+				buf[j + 2] = r;
+				/* pixel 1 */
+				y = camera->buffer[i + 2];
+				r = amp * (0.004565 * y + 0.007935 * u - 1.088);
+				g = amp * (0.004565 * y - 0.001542 * u
+						- 0.003183 * v + 0.531);
+				b = amp * (0.004565 * y + 0.000001 * u
+						+ 0.006250 * v - 0.872);
+				r = (r < 0) ? 0 : ((r > 255) ? 255 : r);
+				g = (g < 0) ? 0 : ((g > 255) ? 255 : g);
+				b = (b < 0) ? 0 : ((b > 255) ? 255 : b);
+				buf[j + 3] = b;
+				buf[j + 4] = g;
+				buf[j + 5] = r;
+			}
+			break;
+		default:
+#ifdef DEBUG
+			fprintf(stderr, "DEBUG: %s() Unsupported format\n",
+					__func__);
+#endif
+			break;
+	}
 }
