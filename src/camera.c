@@ -45,14 +45,17 @@ struct _Camera
 {
 	String * device;
 
+	guint source;
 	int fd;
 	struct v4l2_format format;
+
+	/* input data */
 	char * raw_buffer;
 	size_t raw_buffer_cnt;
+
+	/* RGB data */
 	unsigned char * rgb_buffer;
 	size_t rgb_buffer_cnt;
-
-	guint source;
 
 	/* decoding */
 	int yuv_amp;
@@ -84,6 +87,7 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
 static void _camera_on_file_close(gpointer data);
+static void _camera_on_file_snapshot(gpointer data);
 static void _camera_on_help_about(gpointer data);
 static gboolean _camera_on_open(gpointer data);
 static gboolean _camera_on_refresh(gpointer data);
@@ -99,6 +103,9 @@ static char const * _authors[] =
 
 static const DesktopMenu _camera_menu_file[] =
 {
+	{ "Take _snapshot", G_CALLBACK(_camera_on_file_snapshot),
+		"camera-photo", 0, 0 },
+	{ "", NULL, NULL, 0, 0 },
 	{ "_Close", G_CALLBACK(_camera_on_file_close), GTK_STOCK_CLOSE, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
@@ -141,12 +148,12 @@ Camera * camera_new(char const * device)
 	if(device == NULL)
 		device = "/dev/video0";
 	camera->device = string_new(device);
+	camera->source = 0;
 	camera->fd = -1;
 	camera->raw_buffer = NULL;
 	camera->raw_buffer_cnt = 0;
 	camera->rgb_buffer = NULL;
 	camera->rgb_buffer_cnt = 0;
-	camera->source = 0;
 	camera->yuv_amp = 255;
 	camera->gc = NULL;
 	camera->window = NULL;
@@ -212,18 +219,19 @@ Camera * camera_new(char const * device)
 /* camera_delete */
 void camera_delete(Camera * camera)
 {
+	if(camera->source != 0)
+		g_source_remove(camera->source);
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
 	if(camera->gc != NULL)
 		g_object_unref(camera->gc);
 	if(camera->window != NULL)
 		gtk_widget_destroy(camera->window);
-	if(camera->source != 0)
-		g_source_remove(camera->source);
 	if(camera->fd >= 0)
 		close(camera->fd);
+	if((char *)camera->rgb_buffer != camera->raw_buffer)
+		free(camera->rgb_buffer);
 	free(camera->raw_buffer);
-	free(camera->rgb_buffer);
 	string_delete(camera->device);
 	object_delete(camera);
 }
@@ -379,6 +387,15 @@ static void _camera_on_file_close(gpointer data)
 }
 
 
+/* camera_on_file_snapshot */
+static void _camera_on_file_snapshot(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_snapshot(camera);
+}
+
+
 /* camera_on_help_about */
 static void _camera_on_help_about(gpointer data)
 {
@@ -445,6 +462,7 @@ static int _open_setup(Camera * camera)
 	struct v4l2_capability cap;
 	struct v4l2_cropcap cropcap;
 	struct v4l2_crop crop;
+	size_t cnt;
 	char * p;
 
 	/* check for errors */
@@ -479,13 +497,21 @@ static int _open_setup(Camera * camera)
 	if(camera->format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -error_set_code(1, "%s: %s", camera->device,
 				"Unsupported video capture type");
-	/* FIXME try to obtain a RGB24 format if possible */
-	if((p = realloc(camera->raw_buffer, camera->format.fmt.pix.sizeimage))
-			== NULL)
+	/* FIXME also try to obtain a RGB24 format if possible */
+	/* allocate the raw buffer */
+	cnt = camera->format.fmt.pix.sizeimage;
+	if((p = realloc(camera->raw_buffer, cnt)) == NULL)
 		return -error_set_code(1, "%s: %s", camera->device,
 				strerror(errno));
 	camera->raw_buffer = p;
-	camera->raw_buffer_cnt = camera->format.fmt.pix.sizeimage;
+	camera->raw_buffer_cnt = cnt;
+	/* allocate the rgb buffer */
+	cnt = camera->format.fmt.pix.width * camera->format.fmt.pix.height * 3;
+	if((p = realloc(camera->rgb_buffer, cnt)) == NULL)
+		return -error_set_code(1, "%s: %s", camera->device,
+				strerror(errno));
+	camera->rgb_buffer = (unsigned char *)p;
+	camera->rgb_buffer_cnt = cnt;
 	return 0;
 }
 
@@ -499,6 +525,10 @@ static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
 	GtkAllocation * allocation = &camera->area_allocation;
+	int width = camera->format.fmt.pix.width;
+	int height = camera->format.fmt.pix.height;
+	GdkPixbuf * pixbuf;
+	GdkPixbuf * pixbuf2;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() 0x%x\n", __func__,
@@ -506,12 +536,30 @@ static gboolean _camera_on_refresh(gpointer data)
 #endif
 	camera->source = 0;
 	_refresh_convert(camera);
-	gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0, allocation->width,
-			allocation->height, GDK_RGB_DITHER_NORMAL,
-			camera->rgb_buffer, camera->format.fmt.pix.width * 3);
+	if(width == allocation->width && height == allocation->height)
+		/* render directly */
+		gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0,
+				width, height, GDK_RGB_DITHER_NORMAL,
+				camera->rgb_buffer, width * 3);
+	else
+	{
+		/* render after scaling */
+		pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
+				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
+				width * 3, NULL, NULL);
+		pixbuf2 = gdk_pixbuf_scale_simple(pixbuf, allocation->width,
+				allocation->height, GDK_INTERP_BILINEAR);
+		gdk_pixbuf_render_to_drawable(pixbuf2, camera->pixmap,
+				camera->gc, 0, 0, 0, 0, -1, -1,
+				GDK_RGB_DITHER_NORMAL, 0, 0);
+		g_object_unref(pixbuf2);
+		g_object_unref(pixbuf);
+	}
+	/* force a refresh */
 	gtk_widget_queue_draw_area(camera->area, 0, 0,
 			camera->area_allocation.width,
 			camera->area_allocation.height);
+	/* XXX use a GIOChannel instead */
 	camera->source = g_idle_add(_camera_on_can_read, camera);
 	return FALSE;
 }
@@ -577,6 +625,9 @@ static void _camera_on_snapshot(gpointer data)
 	GdkPixbuf * pixbuf;
 	GError * error = NULL;
 
+	if(camera->rgb_buffer == NULL)
+		/* ignore the action */
+		return;
 	if((pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 					GDK_COLORSPACE_RGB, FALSE, 8,
 					camera->area_allocation.width,
