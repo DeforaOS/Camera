@@ -47,8 +47,10 @@ struct _Camera
 
 	int fd;
 	struct v4l2_format format;
-	char * buffer;
-	size_t buffer_cnt;
+	char * raw_buffer;
+	size_t raw_buffer_cnt;
+	unsigned char * rgb_buffer;
+	size_t rgb_buffer_cnt;
 
 	guint source;
 
@@ -81,11 +83,11 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
-static gboolean _camera_on_open(gpointer data);
-static gboolean _camera_on_refresh(gpointer data);
-
 static void _camera_on_file_close(gpointer data);
 static void _camera_on_help_about(gpointer data);
+static gboolean _camera_on_open(gpointer data);
+static gboolean _camera_on_refresh(gpointer data);
+static void _camera_on_snapshot(gpointer data);
 
 
 /* constants */
@@ -115,6 +117,15 @@ static const DesktopMenubar _camera_menubar[] =
 };
 
 
+/* variables */
+static DesktopToolbar _camera_toolbar[] =
+{
+	{ "Snapshot", G_CALLBACK(_camera_on_snapshot), "camera-photo", 0, 0,
+		NULL },
+	{ NULL, NULL, NULL, 0, 0, NULL }
+};
+
+
 /* public */
 /* functions */
 /* camera_new */
@@ -131,8 +142,10 @@ Camera * camera_new(char const * device)
 		device = "/dev/video0";
 	camera->device = string_new(device);
 	camera->fd = -1;
-	camera->buffer = NULL;
-	camera->buffer_cnt = 0;
+	camera->raw_buffer = NULL;
+	camera->raw_buffer_cnt = 0;
+	camera->rgb_buffer = NULL;
+	camera->rgb_buffer_cnt = 0;
 	camera->source = 0;
 	camera->yuv_amp = 255;
 	camera->gc = NULL;
@@ -160,8 +173,12 @@ Camera * camera_new(char const * device)
 	/* menubar */
 	widget = desktop_menubar_create(_camera_menubar, camera, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	/* toolbar */
+	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
+	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), FALSE);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 18, 0)
-	/* errors */
+	/* infobar */
 	camera->infobar = gtk_info_bar_new_with_buttons(GTK_STOCK_CLOSE,
 			GTK_RESPONSE_CLOSE, NULL);
 	gtk_info_bar_set_message_type(GTK_INFO_BAR(camera->infobar),
@@ -205,7 +222,8 @@ void camera_delete(Camera * camera)
 		g_source_remove(camera->source);
 	if(camera->fd >= 0)
 		close(camera->fd);
-	free(camera->buffer);
+	free(camera->raw_buffer);
+	free(camera->rgb_buffer);
 	string_delete(camera->device);
 	object_delete(camera);
 }
@@ -276,7 +294,8 @@ static gboolean _camera_on_can_read(gpointer data)
 #endif
 	camera->source = 0;
 	/* FIXME no longer block on read() */
-	if((s = read(camera->fd, camera->buffer, camera->buffer_cnt)) <= 0)
+	if((s = read(camera->fd, camera->raw_buffer, camera->raw_buffer_cnt))
+			<= 0)
 	{
 		/* this error can be ignored */
 		if(errno == EAGAIN)
@@ -284,11 +303,13 @@ static gboolean _camera_on_can_read(gpointer data)
 		close(camera->fd);
 		camera->fd = -1;
 		_camera_error(camera, strerror(errno), 1);
+		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget),
+				FALSE);
 		return FALSE;
 	}
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() %lu %ld\n", __func__,
-			camera->buffer_cnt, s);
+			camera->raw_buffer_cnt, s);
 #endif
 	camera->source = g_idle_add(_camera_on_refresh, camera);
 	return FALSE;
@@ -411,6 +432,7 @@ static gboolean _camera_on_open(gpointer data)
 			camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
 #endif
+	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), TRUE);
 	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
 	/* FIXME register only if can really be read */
@@ -458,18 +480,18 @@ static int _open_setup(Camera * camera)
 		return -error_set_code(1, "%s: %s", camera->device,
 				"Unsupported video capture type");
 	/* FIXME try to obtain a RGB24 format if possible */
-	if((p = realloc(camera->buffer, camera->format.fmt.pix.sizeimage))
+	if((p = realloc(camera->raw_buffer, camera->format.fmt.pix.sizeimage))
 			== NULL)
 		return -error_set_code(1, "%s: %s", camera->device,
 				strerror(errno));
-	camera->buffer = p;
-	camera->buffer_cnt = camera->format.fmt.pix.sizeimage;
+	camera->raw_buffer = p;
+	camera->raw_buffer_cnt = camera->format.fmt.pix.sizeimage;
 	return 0;
 }
 
 
 /* camera_on_refresh */
-static void _refresh_convert(Camera * camera, unsigned char * buf);
+static void _refresh_convert(Camera * camera);
 static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 		uint8_t * r, uint8_t * g, uint8_t * b);
 
@@ -477,19 +499,16 @@ static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
 	GtkAllocation * allocation = &camera->area_allocation;
-	/* XXX pre-allocate this buffer */
-	unsigned char buf[camera->format.fmt.pix.width
-		* camera->format.fmt.pix.height * 3];
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() 0x%x\n", __func__,
 			camera->format.fmt.pix.pixelformat);
 #endif
 	camera->source = 0;
-	_refresh_convert(camera, buf);
+	_refresh_convert(camera);
 	gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0, allocation->width,
 			allocation->height, GDK_RGB_DITHER_NORMAL,
-			buf, camera->format.fmt.pix.width * 3);
+			camera->rgb_buffer, camera->format.fmt.pix.width * 3);
 	gtk_widget_queue_draw_area(camera->area, 0, 0,
 			camera->area_allocation.width,
 			camera->area_allocation.height);
@@ -497,7 +516,7 @@ static gboolean _camera_on_refresh(gpointer data)
 	return FALSE;
 }
 
-static void _refresh_convert(Camera * camera, unsigned char * buf)
+static void _refresh_convert(Camera * camera)
 {
 	size_t i;
 	size_t j;
@@ -505,23 +524,25 @@ static void _refresh_convert(Camera * camera, unsigned char * buf)
 	switch(camera->format.fmt.pix.pixelformat)
 	{
 		case V4L2_PIX_FMT_YUYV:
-			for(i = 0, j = 0; i + 3 < camera->buffer_cnt;
+			for(i = 0, j = 0; i + 3 < camera->raw_buffer_cnt;
 					i += 4, j += 6)
 			{
 				/* pixel 0 */
 				_refresh_convert_yuv(camera->yuv_amp,
-						camera->buffer[i],
-						camera->buffer[i + 1],
-						camera->buffer[i + 3],
-						&buf[j + 2], &buf[j + 1],
-						&buf[j]);
+						camera->raw_buffer[i],
+						camera->raw_buffer[i + 1],
+						camera->raw_buffer[i + 3],
+						&camera->rgb_buffer[j + 2],
+						&camera->rgb_buffer[j + 1],
+						&camera->rgb_buffer[j]);
 				/* pixel 1 */
 				_refresh_convert_yuv(camera->yuv_amp,
-						camera->buffer[i + 2],
-						camera->buffer[i + 1],
-						camera->buffer[i + 3],
-						&buf[j + 5], &buf[j + 4],
-						&buf[j + 3]);
+						camera->raw_buffer[i + 2],
+						camera->raw_buffer[i + 1],
+						camera->raw_buffer[i + 3],
+						&camera->rgb_buffer[j + 5],
+						&camera->rgb_buffer[j + 4],
+						&camera->rgb_buffer[j + 3]);
 			}
 			break;
 		default:
@@ -546,4 +567,32 @@ static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 	*r = (dr < 0) ? 0 : ((dr > 255) ? 255 : dr);
 	*g = (dg < 0) ? 0 : ((dg > 255) ? 255 : dg);
 	*b = (db < 0) ? 0 : ((db > 255) ? 255 : db);
+}
+
+
+/* camera_on_snapshot */
+static void _camera_on_snapshot(gpointer data)
+{
+	Camera * camera = data;
+	GdkPixbuf * pixbuf;
+	GError * error = NULL;
+
+	if((pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
+					GDK_COLORSPACE_RGB, FALSE, 8,
+					camera->area_allocation.width,
+					camera->area_allocation.height,
+					camera->area_allocation.width * 3,
+					NULL, NULL)) == NULL)
+	{
+		_camera_error(camera, "Could not save picture", 1);
+		return;
+	}
+	if(gdk_pixbuf_save(pixbuf, "Snapshot.png", "png", &error, NULL)
+			!= TRUE)
+	{
+		error_set("%s (%s)", "Could not save picture", error->message);
+		_camera_error(camera, error_get(), 1);
+		g_error_free(error);
+	}
+	g_object_unref(pixbuf);
 }
