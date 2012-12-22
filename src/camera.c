@@ -467,6 +467,8 @@ static int _open_setup(Camera * camera)
 
 /* camera_on_refresh */
 static void _refresh_convert(Camera * camera, unsigned char * buf);
+static void _refresh_convert_yuv(uint8_t y, uint8_t u, uint8_t v,
+		uint8_t * r, uint8_t * g, uint8_t * b);
 
 static gboolean _camera_on_refresh(gpointer data)
 {
@@ -494,15 +496,8 @@ static gboolean _camera_on_refresh(gpointer data)
 
 static void _refresh_convert(Camera * camera, unsigned char * buf)
 {
-	const int amp = 255;
 	size_t i;
 	size_t j;
-	unsigned char y;
-	unsigned char u;
-	unsigned char v;
-	double r;
-	double g;
-	double b;
 
 	switch(camera->format.fmt.pix.pixelformat)
 	{
@@ -511,33 +506,17 @@ static void _refresh_convert(Camera * camera, unsigned char * buf)
 					i += 4, j += 6)
 			{
 				/* pixel 0 */
-				y = camera->buffer[i];
-				u = camera->buffer[i + 1];
-				v = camera->buffer[i + 3];
-				r = amp * (0.004565 * y + 0.007935 * u - 1.088);
-				g = amp * (0.004565 * y - 0.001542 * u
-						- 0.003183 * v + 0.531);
-				b = amp * (0.004565 * y + 0.000001 * u
-						+ 0.006250 * v - 0.872);
-				r = (r < 0) ? 0 : ((r > 255) ? 255 : r);
-				g = (g < 0) ? 0 : ((g > 255) ? 255 : g);
-				b = (b < 0) ? 0 : ((b > 255) ? 255 : b);
-				buf[j] = b;
-				buf[j + 1] = g;
-				buf[j + 2] = r;
+				_refresh_convert_yuv(camera->buffer[i],
+						camera->buffer[i + 1],
+						camera->buffer[i + 3],
+						&buf[j + 2], &buf[j + 1],
+						&buf[j]);
 				/* pixel 1 */
-				y = camera->buffer[i + 2];
-				r = amp * (0.004565 * y + 0.007935 * u - 1.088);
-				g = amp * (0.004565 * y - 0.001542 * u
-						- 0.003183 * v + 0.531);
-				b = amp * (0.004565 * y + 0.000001 * u
-						+ 0.006250 * v - 0.872);
-				r = (r < 0) ? 0 : ((r > 255) ? 255 : r);
-				g = (g < 0) ? 0 : ((g > 255) ? 255 : g);
-				b = (b < 0) ? 0 : ((b > 255) ? 255 : b);
-				buf[j + 3] = b;
-				buf[j + 4] = g;
-				buf[j + 5] = r;
+				_refresh_convert_yuv(camera->buffer[i + 2],
+						camera->buffer[i + 1],
+						camera->buffer[i + 3],
+						&buf[j + 5], &buf[j + 4],
+						&buf[j + 3]);
 			}
 			break;
 		default:
@@ -547,4 +526,20 @@ static void _refresh_convert(Camera * camera, unsigned char * buf)
 #endif
 			break;
 	}
+}
+
+static void _refresh_convert_yuv(uint8_t y, uint8_t u, uint8_t v,
+		uint8_t * r, uint8_t * g, uint8_t * b)
+{
+	const int amp = 255;
+	double dr;
+	double dg;
+	double db;
+
+	dr = amp * (0.004565 * y + 0.007935 * u - 1.088);
+	dg = amp * (0.004565 * y - 0.001542 * u - 0.003183 * v + 0.531);
+	db = amp * (0.004565 * y + 0.000001 * u + 0.006250 * v - 0.872);
+	*r = (dr < 0) ? 0 : ((dr > 255) ? 255 : dr);
+	*g = (dg < 0) ? 0 : ((dg > 255) ? 255 : dg);
+	*b = (db < 0) ? 0 : ((db > 255) ? 255 : db);
 }
