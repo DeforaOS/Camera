@@ -170,7 +170,7 @@ Camera * camera_new(char const * device)
 	camera->gc = gdk_gc_new(camera->window->window); /* XXX */
 	gtk_window_add_accel_group(GTK_WINDOW(camera->window), group);
 #if GTK_CHECK_VERSION(2, 6, 0)
-	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-video");
+	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-photo");
 #endif
 	gtk_window_set_resizable(GTK_WINDOW(camera->window), FALSE);
 	gtk_window_set_title(GTK_WINDOW(camera->window), "Camera");
@@ -410,7 +410,7 @@ static void _camera_on_help_about(gpointer data)
 			"Simple camera application for the DeforaOS desktop");
 	desktop_about_dialog_set_copyright(widget, _copyright);
 	desktop_about_dialog_set_license(widget, _license);
-	desktop_about_dialog_set_logo_icon_name(widget, "camera-video");
+	desktop_about_dialog_set_logo_icon_name(widget, "camera-photo");
 	desktop_about_dialog_set_name(widget, PACKAGE);
 	desktop_about_dialog_set_version(widget, VERSION);
 	gtk_dialog_run(GTK_DIALOG(widget));

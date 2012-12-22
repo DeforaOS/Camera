@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Video camera
-Comment=Take pictures using a video camera
+Name=Camera
+Comment=Take pictures using a camera
 Exec=camera
-Icon=camera-video
+Icon=camera-photo
 Type=Application
-Categories=AudioVideo;Video;GTK;
+Categories=Graphics;GTK;
 StartupNotify=true
