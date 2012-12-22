@@ -52,6 +52,9 @@ struct _Camera
 
 	guint source;
 
+	/* decoding */
+	int yuv_amp;
+
 	/* widgets */
 	GdkGC * gc;
 	GtkWidget * window;
@@ -131,6 +134,7 @@ Camera * camera_new(char const * device)
 	camera->buffer = NULL;
 	camera->buffer_cnt = 0;
 	camera->source = 0;
+	camera->yuv_amp = 255;
 	camera->gc = NULL;
 	camera->window = NULL;
 	/* check for errors */
@@ -467,7 +471,7 @@ static int _open_setup(Camera * camera)
 
 /* camera_on_refresh */
 static void _refresh_convert(Camera * camera, unsigned char * buf);
-static void _refresh_convert_yuv(uint8_t y, uint8_t u, uint8_t v,
+static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 		uint8_t * r, uint8_t * g, uint8_t * b);
 
 static gboolean _camera_on_refresh(gpointer data)
@@ -506,13 +510,15 @@ static void _refresh_convert(Camera * camera, unsigned char * buf)
 					i += 4, j += 6)
 			{
 				/* pixel 0 */
-				_refresh_convert_yuv(camera->buffer[i],
+				_refresh_convert_yuv(camera->yuv_amp,
+						camera->buffer[i],
 						camera->buffer[i + 1],
 						camera->buffer[i + 3],
 						&buf[j + 2], &buf[j + 1],
 						&buf[j]);
 				/* pixel 1 */
-				_refresh_convert_yuv(camera->buffer[i + 2],
+				_refresh_convert_yuv(camera->yuv_amp,
+						camera->buffer[i + 2],
 						camera->buffer[i + 1],
 						camera->buffer[i + 3],
 						&buf[j + 5], &buf[j + 4],
@@ -528,10 +534,9 @@ static void _refresh_convert(Camera * camera, unsigned char * buf)
 	}
 }
 
-static void _refresh_convert_yuv(uint8_t y, uint8_t u, uint8_t v,
+static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 		uint8_t * r, uint8_t * g, uint8_t * b)
 {
-	const int amp = 255;
 	double dr;
 	double dg;
 	double db;
