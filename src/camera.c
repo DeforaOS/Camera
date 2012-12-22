@@ -341,7 +341,6 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 	/* XXX this code is inspired from GQcam */
 	Camera * camera = data;
 
-	/* FIXME this code is untested */
 	gdk_draw_pixmap(widget->window, camera->gc, camera->pixmap,
 			event->area.x, event->area.y,
 			event->area.x, event->area.y,
