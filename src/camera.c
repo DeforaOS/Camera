@@ -630,9 +630,9 @@ static void _camera_on_snapshot(gpointer data)
 		return;
 	if((pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 					GDK_COLORSPACE_RGB, FALSE, 8,
-					camera->area_allocation.width,
-					camera->area_allocation.height,
-					camera->area_allocation.width * 3,
+					camera->format.fmt.pix.width,
+					camera->format.fmt.pix.height,
+					camera->format.fmt.pix.width * 3,
 					NULL, NULL)) == NULL)
 	{
 		_camera_error(camera, "Could not save picture", 1);
