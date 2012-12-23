@@ -71,5 +71,7 @@ int main(int argc, char * argv[])
 			default:
 				return _usage();
 		}
+	if(optind != argc)
+		return _usage();
 	return (_camera(device) == 0) ? 0 : 2;
 }
