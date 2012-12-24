@@ -413,6 +413,7 @@ static void _camera_on_help_about(gpointer data)
 	desktop_about_dialog_set_logo_icon_name(widget, "camera-photo");
 	desktop_about_dialog_set_name(widget, PACKAGE);
 	desktop_about_dialog_set_version(widget, VERSION);
+	desktop_about_dialog_set_website(widget, "http://www.defora.org/");
 	gtk_dialog_run(GTK_DIALOG(widget));
 	gtk_widget_destroy(widget);
 }
