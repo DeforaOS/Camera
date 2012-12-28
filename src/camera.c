@@ -32,6 +32,7 @@ static char const _license[] =
 #include <string.h>
 #include <errno.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 #include <System.h>
 #include <Desktop.h>
 #include "camera.h"
@@ -87,13 +88,17 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
 static gboolean _camera_on_open(gpointer data);
+static void _camera_on_preferences(gpointer data);
+static void _camera_on_properties(gpointer data);
 static gboolean _camera_on_refresh(gpointer data);
 static void _camera_on_snapshot(gpointer data);
 
 #ifndef EMBEDDED
 /* menus */
 static void _camera_on_file_close(gpointer data);
+static void _camera_on_file_properties(gpointer data);
 static void _camera_on_file_snapshot(gpointer data);
+static void _camera_on_edit_preferences(gpointer data);
 static void _camera_on_help_about(gpointer data);
 #endif
 
@@ -114,7 +119,17 @@ static const DesktopMenu _camera_menu_file[] =
 	{ "Take _snapshot", G_CALLBACK(_camera_on_file_snapshot),
 		"camera-photo", 0, 0 },
 	{ "", NULL, NULL, 0, 0 },
+	{ "_Properties", G_CALLBACK(_camera_on_file_properties),
+		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return },
+	{ "", NULL, NULL, 0, 0 },
 	{ "_Close", G_CALLBACK(_camera_on_file_close), GTK_STOCK_CLOSE, 0, 0 },
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
+static const DesktopMenu _camera_menu_edit[] =
+{
+	{ "_Preferences", G_CALLBACK(_camera_on_edit_preferences),
+		GTK_STOCK_PREFERENCES, GDK_CONTROL_MASK, GDK_KEY_P },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -127,6 +142,7 @@ static const DesktopMenu _camera_menu_help[] =
 static const DesktopMenubar _camera_menubar[] =
 {
 	{ "_File", _camera_menu_file },
+	{ "_Edit", _camera_menu_edit },
 	{ "_Help", _camera_menu_help },
 	{ NULL, NULL }
 };
@@ -138,6 +154,14 @@ static DesktopToolbar _camera_toolbar[] =
 {
 	{ "Snapshot", G_CALLBACK(_camera_on_snapshot), "camera-photo", 0, 0,
 		NULL },
+#ifdef EMBEDDED
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ "Properties", G_CALLBACK(_camera_on_properties),
+		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return, NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ "Preferences", G_CALLBACK(_camera_on_preferences),
+		GTK_STOCK_PREFERENCES, GDK_CONTROL_MASK, GDK_KEY_P, NULL },
+#endif
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -390,6 +414,7 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 
 
 #ifndef EMBEDDED
+/* menus */
 /* camera_on_file_close */
 static void _camera_on_file_close(gpointer data)
 {
@@ -399,12 +424,30 @@ static void _camera_on_file_close(gpointer data)
 }
 
 
+/* camera_on_file_properties */
+static void _camera_on_file_properties(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_properties(camera);
+}
+
+
 /* camera_on_file_snapshot */
 static void _camera_on_file_snapshot(gpointer data)
 {
 	Camera * camera = data;
 
 	_camera_on_snapshot(camera);
+}
+
+
+/* camera_on_edit_preferences */
+static void _camera_on_edit_preferences(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_preferences(camera);
 }
 
 
@@ -527,6 +570,20 @@ static int _open_setup(Camera * camera)
 	camera->rgb_buffer = (unsigned char *)p;
 	camera->rgb_buffer_cnt = cnt;
 	return 0;
+}
+
+
+/* camera_on_preferences */
+static void _camera_on_preferences(gpointer data)
+{
+	/* FIXME implement */
+}
+
+
+/* camera_on_properties */
+static void _camera_on_properties(gpointer data)
+{
+	/* FIXME implement */
 }
 
 
