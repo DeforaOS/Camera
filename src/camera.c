@@ -86,21 +86,29 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
-static void _camera_on_file_close(gpointer data);
-static void _camera_on_file_snapshot(gpointer data);
-static void _camera_on_help_about(gpointer data);
 static gboolean _camera_on_open(gpointer data);
 static gboolean _camera_on_refresh(gpointer data);
 static void _camera_on_snapshot(gpointer data);
 
+#ifndef EMBEDDED
+/* menus */
+static void _camera_on_file_close(gpointer data);
+static void _camera_on_file_snapshot(gpointer data);
+static void _camera_on_help_about(gpointer data);
+#endif
+
 
 /* constants */
+#ifndef EMBEDDED
 static char const * _authors[] =
 {
 	"Pierre Pronchery <khorben@defora.org>",
 	NULL
 };
+#endif
 
+#ifndef EMBEDDED
+/* menus */
 static const DesktopMenu _camera_menu_file[] =
 {
 	{ "Take _snapshot", G_CALLBACK(_camera_on_file_snapshot),
@@ -122,6 +130,7 @@ static const DesktopMenubar _camera_menubar[] =
 	{ "_Help", _camera_menu_help },
 	{ NULL, NULL }
 };
+#endif
 
 
 /* variables */
@@ -177,9 +186,11 @@ Camera * camera_new(char const * device)
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camera_on_closex), camera);
 	vbox = gtk_vbox_new(FALSE, 0);
+#ifndef EMBEDDED
 	/* menubar */
 	widget = desktop_menubar_create(_camera_menubar, camera, group);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+#endif
 	/* toolbar */
 	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), FALSE);
@@ -378,6 +389,7 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 }
 
 
+#ifndef EMBEDDED
 /* camera_on_file_close */
 static void _camera_on_file_close(gpointer data)
 {
@@ -417,6 +429,7 @@ static void _camera_on_help_about(gpointer data)
 	gtk_dialog_run(GTK_DIALOG(widget));
 	gtk_widget_destroy(widget);
 }
+#endif
 
 
 /* camera_on_open */
