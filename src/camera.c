@@ -224,6 +224,9 @@ Camera * camera_new(char const * device)
 	/* toolbar */
 	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), FALSE);
+#ifdef EMBEDDED
+	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), FALSE);
+#endif
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 18, 0)
 	/* infobar */
@@ -356,6 +359,10 @@ static gboolean _camera_on_can_read(gpointer data)
 		_camera_error(camera, strerror(errno), 1);
 		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget),
 				FALSE);
+#ifdef EMBEDDED
+		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget),
+				FALSE);
+#endif
 		return FALSE;
 	}
 #ifdef DEBUG
@@ -515,6 +522,9 @@ static gboolean _camera_on_open(gpointer data)
 			camera->format.fmt.pix.height);
 #endif
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), TRUE);
+#ifdef EMBEDDED
+	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), TRUE);
+#endif
 	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
 	/* FIXME register only if can really be read */
