@@ -48,6 +48,7 @@ struct _Camera
 
 	guint source;
 	int fd;
+	struct v4l2_capability cap;
 	struct v4l2_format format;
 
 	/* input data */
@@ -62,6 +63,7 @@ struct _Camera
 	int yuv_amp;
 
 	/* widgets */
+	PangoFontDescription * bold;
 	GdkGC * gc;
 	GtkWidget * window;
 #if GTK_CHECK_VERSION(2, 18, 0)
@@ -183,11 +185,13 @@ Camera * camera_new(char const * device)
 	camera->device = string_new(device);
 	camera->source = 0;
 	camera->fd = -1;
+	memset(&camera->cap, 0, sizeof(camera->cap));
 	camera->raw_buffer = NULL;
 	camera->raw_buffer_cnt = 0;
 	camera->rgb_buffer = NULL;
 	camera->rgb_buffer_cnt = 0;
 	camera->yuv_amp = 255;
+	camera->bold = NULL;
 	camera->gc = NULL;
 	camera->window = NULL;
 	/* check for errors */
@@ -197,6 +201,8 @@ Camera * camera_new(char const * device)
 		return NULL;
 	}
 	/* create the window */
+	camera->bold = pango_font_description_new();
+	pango_font_description_set_weight(camera->bold, PANGO_WEIGHT_BOLD);
 	group = gtk_accel_group_new();
 	camera->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_widget_realize(camera->window);
@@ -262,6 +268,8 @@ void camera_delete(Camera * camera)
 		g_object_unref(camera->gc);
 	if(camera->window != NULL)
 		gtk_widget_destroy(camera->window);
+	if(camera->bold != NULL)
+		pango_font_description_free(camera->bold);
 	if(camera->fd >= 0)
 		close(camera->fd);
 	if((char *)camera->rgb_buffer != camera->raw_buffer)
@@ -516,20 +524,19 @@ static gboolean _camera_on_open(gpointer data)
 
 static int _open_setup(Camera * camera)
 {
-	struct v4l2_capability cap;
 	struct v4l2_cropcap cropcap;
 	struct v4l2_crop crop;
 	size_t cnt;
 	char * p;
 
 	/* check for errors */
-	if(_camera_ioctl(camera, VIDIOC_QUERYCAP, &cap) == -1)
+	if(_camera_ioctl(camera, VIDIOC_QUERYCAP, &camera->cap) == -1)
 		return -error_set_code(1, "%s: %s (%s)", camera->device,
 				"Could not obtain the capabilities",
 				strerror(errno));
-	if((cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0
+	if((camera->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0
 			/* FIXME also implement mmap() and streaming */
-			|| (cap.capabilities & V4L2_CAP_READWRITE) == 0)
+			|| (camera->cap.capabilities & V4L2_CAP_READWRITE) == 0)
 		return -error_set_code(1, "%s: %s", camera->device,
 				"Unsupported capabilities");
 	/* reset cropping */
@@ -581,9 +588,68 @@ static void _camera_on_preferences(gpointer data)
 
 
 /* camera_on_properties */
+static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
+		char const * label, char const * value);
+
 static void _camera_on_properties(gpointer data)
 {
-	/* FIXME implement */
+	Camera * camera = data;
+	GtkWidget * dialog;
+	GtkSizeGroup * group;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	char buf[64];
+
+	if(camera->rgb_buffer == NULL)
+		/* ignore the action */
+		return;
+	dialog = gtk_dialog_new_with_buttons("Properties",
+			GTK_WINDOW(camera->window),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 300, 200);
+	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = dialog->vbox;
+#endif
+	/* driver */
+	snprintf(buf, sizeof(buf), "%16s", (char *)camera->cap.driver);
+	hbox = _properties_label(camera, group, "Driver: ", buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* card */
+	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.card);
+	hbox = _properties_label(camera, group, "Card: ", buf);
+	/* bus info */
+	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.bus_info);
+	hbox = _properties_label(camera, group, "Bus info: ", buf);
+	/* version */
+	snprintf(buf, sizeof(buf), "0x%x", camera->cap.version);
+	hbox = _properties_label(camera, group, "Version: ", buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+}
+
+static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
+		char const * label, char const * value)
+{
+	GtkWidget * hbox;
+	GtkWidget * widget;
+
+	hbox = gtk_hbox_new(FALSE, 4);
+	widget = gtk_label_new(label);
+	gtk_widget_modify_font(widget, camera->bold);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_size_group_add_widget(group, widget);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	widget = gtk_label_new((value != NULL) ? value : "");
+	gtk_label_set_ellipsize(GTK_LABEL(widget), PANGO_ELLIPSIZE_END);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
+	return hbox;
 }
 
 
