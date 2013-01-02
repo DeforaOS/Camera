@@ -84,6 +84,7 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 
 /* callbacks */
 static gboolean _camera_on_can_read(gpointer data);
+static void _camera_on_close(gpointer data);
 static gboolean _camera_on_closex(gpointer data);
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
@@ -111,6 +112,14 @@ static char const * _authors[] =
 {
 	"Pierre Pronchery <khorben@defora.org>",
 	NULL
+};
+#endif
+
+#ifdef EMBEDDED
+static const DesktopAccel _camera_accel[] =
+{
+	{ G_CALLBACK(_camera_on_close), GDK_CONTROL_MASK, GDK_KEY_W },
+	{ NULL, 0, 0 }
 };
 #endif
 
@@ -217,6 +226,9 @@ Camera * camera_new(char const * device)
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camera_on_closex), camera);
 	vbox = gtk_vbox_new(FALSE, 0);
+#ifdef EMBEDDED
+	desktop_accel_create(_camera_accel, camera, group);
+#endif
 #ifndef EMBEDDED
 	/* menubar */
 	widget = desktop_menubar_create(_camera_menubar, camera, group);
@@ -375,8 +387,8 @@ static gboolean _camera_on_can_read(gpointer data)
 }
 
 
-/* camera_on_closex */
-static gboolean _camera_on_closex(gpointer data)
+/* camera_on_close */
+static void _camera_on_close(gpointer data)
 {
 	Camera * camera = data;
 
@@ -385,6 +397,15 @@ static gboolean _camera_on_closex(gpointer data)
 		g_source_remove(camera->source);
 	camera->source = 0;
 	gtk_main_quit();
+}
+
+
+/* camera_on_closex */
+static gboolean _camera_on_closex(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_close(camera);
 	return TRUE;
 }
 
