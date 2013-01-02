@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _copyright[] =
-"Copyright (c) 2012 Pierre Pronchery <khorben@defora.org>";
+"Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Camera */
 static char const _license[] =
 "This program is free software: you can redistribute it and/or modify\n"
@@ -124,7 +124,8 @@ static const DesktopMenu _camera_menu_file[] =
 	{ "_Properties", G_CALLBACK(_camera_on_file_properties),
 		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return },
 	{ "", NULL, NULL, 0, 0 },
-	{ "_Close", G_CALLBACK(_camera_on_file_close), GTK_STOCK_CLOSE, 0, 0 },
+	{ "_Close", G_CALLBACK(_camera_on_file_close), GTK_STOCK_CLOSE,
+		GDK_CONTROL_MASK, GDK_KEY_W },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
