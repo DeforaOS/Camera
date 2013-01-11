@@ -51,6 +51,9 @@ struct _Camera
 	struct v4l2_capability cap;
 	struct v4l2_format format;
 
+	/* IO channel */
+	GIOChannel * channel;
+
 	/* input data */
 	char * raw_buffer;
 	size_t raw_buffer_cnt;
@@ -83,7 +86,8 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 		void * data);
 
 /* callbacks */
-static gboolean _camera_on_can_read(gpointer data);
+static gboolean _camera_on_can_read(GIOChannel * channel,
+		GIOCondition condition, gpointer data);
 static void _camera_on_close(gpointer data);
 static gboolean _camera_on_closex(gpointer data);
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
@@ -196,6 +200,7 @@ Camera * camera_new(char const * device)
 	camera->source = 0;
 	camera->fd = -1;
 	memset(&camera->cap, 0, sizeof(camera->cap));
+	camera->channel = NULL;
 	camera->raw_buffer = NULL;
 	camera->raw_buffer_cnt = 0;
 	camera->rgb_buffer = NULL;
@@ -278,6 +283,15 @@ void camera_delete(Camera * camera)
 {
 	if(camera->source != 0)
 		g_source_remove(camera->source);
+	if(camera->channel != NULL)
+	{
+		/* XXX we ignore errors at this point */
+		g_io_channel_shutdown(camera->channel, TRUE, NULL);
+#if 0
+		/* FIXME seems to cause a crash */
+		g_object_unref(camera->channel);
+#endif
+	}
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
 	if(camera->gc != NULL)
@@ -351,7 +365,8 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 
 /* callbacks */
 /* camera_on_can_read */
-static gboolean _camera_on_can_read(gpointer data)
+static gboolean _camera_on_can_read(GIOChannel * channel,
+		GIOCondition condition, gpointer data)
 {
 	Camera * camera = data;
 	ssize_t s;
@@ -359,8 +374,8 @@ static gboolean _camera_on_can_read(gpointer data)
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
-	camera->source = 0;
-	/* FIXME no longer block on read() */
+	if(channel != camera->channel || condition != G_IO_IN)
+		return FALSE;
 	if((s = read(camera->fd, camera->raw_buffer, camera->raw_buffer_cnt))
 			<= 0)
 	{
@@ -376,6 +391,7 @@ static gboolean _camera_on_can_read(gpointer data)
 		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget),
 				FALSE);
 #endif
+		camera->source = 0;
 		return FALSE;
 	}
 #ifdef DEBUG
@@ -549,8 +565,6 @@ static gboolean _camera_on_open(gpointer data)
 #endif
 	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
-	/* FIXME register only if can really be read */
-	_camera_on_can_read(camera);
 	return FALSE;
 }
 
@@ -560,6 +574,7 @@ static int _open_setup(Camera * camera)
 	struct v4l2_crop crop;
 	size_t cnt;
 	char * p;
+	GError * error = NULL;
 
 	/* check for errors */
 	if(_camera_ioctl(camera, VIDIOC_QUERYCAP, &camera->cap) == -1)
@@ -608,6 +623,18 @@ static int _open_setup(Camera * camera)
 				strerror(errno));
 	camera->rgb_buffer = (unsigned char *)p;
 	camera->rgb_buffer_cnt = cnt;
+	/* setup a IO channel */
+	camera->channel = g_io_channel_unix_new(camera->fd);
+	if(g_io_channel_set_encoding(camera->channel, NULL, &error)
+			!= G_IO_STATUS_NORMAL)
+	{
+		error_set_code(1, "%s", error->message);
+		g_error_free(error);
+		return -1;
+	}
+	g_io_channel_set_buffered(camera->channel, FALSE);
+	camera->source = g_io_add_watch(camera->channel, G_IO_IN,
+			_camera_on_can_read, camera);
 	return 0;
 }
 
@@ -703,7 +730,6 @@ static gboolean _camera_on_refresh(gpointer data)
 	fprintf(stderr, "DEBUG: %s() 0x%x\n", __func__,
 			camera->format.fmt.pix.pixelformat);
 #endif
-	camera->source = 0;
 	_refresh_convert(camera);
 	if(width == allocation->width && height == allocation->height)
 		/* render directly */
@@ -728,8 +754,8 @@ static gboolean _camera_on_refresh(gpointer data)
 	gtk_widget_queue_draw_area(camera->area, 0, 0,
 			camera->area_allocation.width,
 			camera->area_allocation.height);
-	/* XXX use a GIOChannel instead */
-	camera->source = g_idle_add(_camera_on_can_read, camera);
+	camera->source = g_io_add_watch(camera->channel, G_IO_IN,
+			_camera_on_can_read, camera);
 	return FALSE;
 }
 
