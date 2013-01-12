@@ -226,7 +226,6 @@ Camera * camera_new(char const * device)
 #if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-photo");
 #endif
-	gtk_window_set_resizable(GTK_WINDOW(camera->window), FALSE);
 	gtk_window_set_title(GTK_WINDOW(camera->window), "Camera");
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camera_on_closex), camera);
