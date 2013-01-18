@@ -348,7 +348,7 @@ static int _snapshot_dcim(Camera * camera, char const * homedir,
 		return -_camera_error(camera, "Could not save picture", 1);
 	if(mkdir(path, 0777) != 0 && errno != EEXIST)
 	{
-		error_set("%s: %s: %s", "Could not save picture", path,
+		error_set_code(1, "%s: %s: %s", "Could not save picture", path,
 				strerror(errno));
 		free(path);
 		return -_camera_error(camera, error_get(), 1);
@@ -416,7 +416,8 @@ static int _snapshot_save(Camera * camera, char const * path)
 	g_object_unref(pixbuf);
 	if(res != TRUE)
 	{
-		error_set("%s: %s", "Could not save picture", error->message);
+		error_set_code(1, "%s: %s", "Could not save picture",
+				error->message);
 		g_error_free(error);
 		return -_camera_error(camera, error_get(), 1);
 	}
@@ -655,7 +656,7 @@ static gboolean _camera_on_open(gpointer data)
 	camera->source = 0;
 	if((camera->fd = open(camera->device, O_RDWR)) < 0)
 	{
-		error_set("%s: %s (%s)", camera->device,
+		error_set_code(1, "%s: %s (%s)", camera->device,
 				"Could not open the video capture device",
 				strerror(errno));
 		_camera_error(camera, error_get(), 1);
