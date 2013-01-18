@@ -402,15 +402,14 @@ static char * _snapshot_path(Camera * camera, char const * homedir,
 
 static int _snapshot_save(Camera * camera, char const * path)
 {
+	struct v4l2_pix_format * pix = &camera->format.fmt.pix;
 	GdkPixbuf * pixbuf;
 	gboolean res;
 	GError * error = NULL;
 
 	if((pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 					GDK_COLORSPACE_RGB, FALSE, 8,
-					camera->format.fmt.pix.width,
-					camera->format.fmt.pix.height,
-					camera->format.fmt.pix.width * 3,
+					pix->width, pix->height, pix->width * 3,
 					NULL, NULL)) == NULL)
 		return -_camera_error(camera, "Could not save picture", 1);
 	res = gdk_pixbuf_save(pixbuf, path, "png", &error, NULL);
