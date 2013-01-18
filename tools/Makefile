@@ -34,7 +34,10 @@ distclean: clean
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
+	$(MKDIR) $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 0755 -- gallery $(DESTDIR)$(BINDIR)/gallery
 
 uninstall:
+	$(RM) -- $(DESTDIR)$(BINDIR)/gallery
 
 .PHONY: all clean distclean install uninstall

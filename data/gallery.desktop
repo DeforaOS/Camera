@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Gallery
+Comment=Picture gallery
+Exec=gallery
+Icon=image-x-generic
+Type=Application
+Categories=Graphics;GTK;
+StartupNotify=true
