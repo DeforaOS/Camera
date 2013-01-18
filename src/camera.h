@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2012 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS desktop camera */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,5 +27,8 @@ typedef struct _Camera Camera;
 /* functions */
 Camera * camera_new(char const * device);
 void camera_delete(Camera * camera);
+
+/* useful */
+int camera_snapshot(Camera * camera);
 
 #endif /* !CAMERA_CAMERA_H */
