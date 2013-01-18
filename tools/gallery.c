@@ -37,7 +37,7 @@ static int _gallery(void)
 	char const * homedir;
 	char const dcim[] = "DCIM";
 	char * path;
-	char * argv[] = { "browser", "--", NULL, NULL };
+	char * argv[] = { "browser", "-T", "--", NULL, NULL };
 
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
@@ -47,7 +47,7 @@ static int _gallery(void)
 		fprintf(stderr, "%s: %s\n", gallery, strerror(errno));
 		return -1;
 	}
-	argv[2] = path;
+	argv[3] = path;
 	execvp(argv[0], argv);
 	fprintf(stderr, "%s: %s: %s\n", gallery, argv[0], strerror(errno));
 	g_free(path);
