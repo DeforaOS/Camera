@@ -816,12 +816,37 @@ static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 static void _camera_on_snapshot(gpointer data)
 {
 	Camera * camera = data;
+	char const * homedir;
+	char const dcim[] = "DCIM";
+	char * path;
 	GdkPixbuf * pixbuf;
 	GError * error = NULL;
 
 	if(camera->rgb_buffer == NULL)
 		/* ignore the action */
 		return;
+	if((homedir = getenv("HOME")) == NULL)
+		homedir = g_get_home_dir();
+	if((path = g_build_filename(homedir, dcim, NULL)) == NULL)
+	{
+		_camera_error(camera, "Could not save picture", 1);
+		return;
+	}
+	if(mkdir(path, 0777) != 0 && errno != EEXIST)
+	{
+		error_set("%s: %s: %s", "Could not save picture", path,
+				strerror(errno));
+		_camera_error(camera, error_get(), 1);
+		free(path);
+		return;
+	}
+	free(path);
+	if((path = g_build_filename(homedir, dcim, "Snapshot.png", NULL))
+			== NULL)
+	{
+		_camera_error(camera, "Could not save picture", 1);
+		return;
+	}
 	if((pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 					GDK_COLORSPACE_RGB, FALSE, 8,
 					camera->format.fmt.pix.width,
@@ -830,14 +855,15 @@ static void _camera_on_snapshot(gpointer data)
 					NULL, NULL)) == NULL)
 	{
 		_camera_error(camera, "Could not save picture", 1);
+		free(path);
 		return;
 	}
-	if(gdk_pixbuf_save(pixbuf, "Snapshot.png", "png", &error, NULL)
-			!= TRUE)
+	if(gdk_pixbuf_save(pixbuf, path, "png", &error, NULL) != TRUE)
 	{
 		error_set("%s (%s)", "Could not save picture", error->message);
-		_camera_error(camera, error_get(), 1);
 		g_error_free(error);
+		_camera_error(camera, error_get(), 1);
 	}
+	free(path);
 	g_object_unref(pixbuf);
 }
