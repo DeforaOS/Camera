@@ -31,12 +31,15 @@ static char const _license[] =
 #endif
 #include <string.h>
 #include <errno.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <System.h>
 #include <Desktop.h>
 #include "camera.h"
 #include "../config.h"
+#define _(string) gettext(string)
+#define N_(string) (string)
 
 
 /* Camera */
@@ -345,11 +348,11 @@ static int _snapshot_dcim(Camera * camera, char const * homedir,
 	char * path;
 
 	if((path = g_build_filename(homedir, dcim, NULL)) == NULL)
-		return -_camera_error(camera, "Could not save picture", 1);
+		return -_camera_error(camera, _("Could not save picture"), 1);
 	if(mkdir(path, 0777) != 0 && errno != EEXIST)
 	{
-		error_set_code(1, "%s: %s: %s", "Could not save picture", path,
-				strerror(errno));
+		error_set_code(1, "%s: %s: %s", _("Could not save picture"),
+				path, strerror(errno));
 		free(path);
 		return -_camera_error(camera, error_get(), 1);
 	}
@@ -368,7 +371,7 @@ static char * _snapshot_path(Camera * camera, char const * homedir,
 
 	if(gettimeofday(&tv, NULL) != 0 || gmtime_r(&tv.tv_sec, &tm) == NULL)
 	{
-		error_set_code(1, "%s: %s", "Could not save picture",
+		error_set_code(1, "%s: %s", _("Could not save picture"),
 				strerror(errno));
 		_camera_error(camera, error_get(), 1);
 		return NULL;
@@ -387,7 +390,7 @@ static char * _snapshot_path(Camera * camera, char const * homedir,
 		g_free(filename);
 		if(path == NULL)
 		{
-			_camera_error(camera, "Could not save picture", 1);
+			_camera_error(camera, _("Could not save picture"), 1);
 			return NULL;
 		}
 #ifdef DEBUG
@@ -411,12 +414,12 @@ static int _snapshot_save(Camera * camera, char const * path)
 					GDK_COLORSPACE_RGB, FALSE, 8,
 					pix->width, pix->height, pix->width * 3,
 					NULL, NULL)) == NULL)
-		return -_camera_error(camera, "Could not save picture", 1);
+		return -_camera_error(camera, _("Could not save picture"), 1);
 	res = gdk_pixbuf_save(pixbuf, path, "png", &error, NULL);
 	g_object_unref(pixbuf);
 	if(res != TRUE)
 	{
-		error_set_code(1, "%s: %s", "Could not save picture",
+		error_set_code(1, "%s: %s", _("Could not save picture"),
 				error->message);
 		g_error_free(error);
 		return -_camera_error(camera, error_get(), 1);

@@ -1,6 +1,6 @@
 PACKAGE	= Camera
 VERSION	= 0.0.0
-SUBDIRS	= data src tools
+SUBDIRS	= data po src tools
 RM	= rm -f
 LN	= ln -f
 TAR	= tar -czvf
@@ -25,6 +25,11 @@ dist:
 		$(PACKAGE)-$(VERSION)/data/camera.desktop \
 		$(PACKAGE)-$(VERSION)/data/gallery.desktop \
 		$(PACKAGE)-$(VERSION)/data/project.conf \
+		$(PACKAGE)-$(VERSION)/po/Makefile \
+		$(PACKAGE)-$(VERSION)/po/gettext.sh \
+		$(PACKAGE)-$(VERSION)/po/POTFILES \
+		$(PACKAGE)-$(VERSION)/po/fr.po \
+		$(PACKAGE)-$(VERSION)/po/project.conf \
 		$(PACKAGE)-$(VERSION)/src/camera.c \
 		$(PACKAGE)-$(VERSION)/src/main.c \
 		$(PACKAGE)-$(VERSION)/src/Makefile \

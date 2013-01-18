@@ -17,10 +17,25 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <locale.h>
+#include <libintl.h>
 #include <gtk/gtk.h>
 #include <System.h>
 #include "camera.h"
 #include "../config.h"
+#define _(string) gettext(string)
+
+
+/* constants */
+#ifndef PREFIX
+# define PREFIX		"/usr/local"
+#endif
+#ifndef DATADIR
+# define DATADIR	PREFIX "/share"
+#endif
+#ifndef LOCALEDIR
+# define LOCALEDIR	DATADIR "/locale"
+#endif
 
 
 /* private */
@@ -47,8 +62,8 @@ static int _camera(char const * device)
 /* usage */
 static int _usage(void)
 {
-	fputs("Usage: camera [-d device]\n"
-"  -d	Video device to open\n", stderr);
+	fputs(_("Usage: camera [-d device]\n"
+"  -d	Video device to open\n"), stderr);
 	return 1;
 }
 
@@ -61,6 +76,9 @@ int main(int argc, char * argv[])
 	int o;
 	char const * device = NULL;
 
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
 	while((o = getopt(argc, argv, "d:")) != -1)
 		switch(o)
