@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camera 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-18 22:35+0100\n"
+"POT-Creation-Date: 2013-01-19 03:27+0100\n"
 "PO-Revision-Date: 2013-01-18 22:31+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -15,6 +15,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: ../src/camera.c:352 ../src/camera.c:355 ../src/camera.c:375
+#: ../src/camera.c:394 ../src/camera.c:418 ../src/camera.c:423
+msgid "Could not save picture"
+msgstr "Impossible d'enregistrer l'image"
 
 #: ../src/main.c:65
 msgid ""
