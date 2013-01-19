@@ -450,11 +450,11 @@ static int _camera_error(Camera * camera, char const * message, int ret)
 			GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
 			GTK_BUTTONS_CLOSE,
 # if GTK_CHECK_VERSION(2, 6, 0)
-			"%s", "Error");
+			"%s", _("Error"));
 	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
 # endif
 			"%s", message);
-	gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Error"));
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(dialog);
 #endif
@@ -628,13 +628,14 @@ static void _camera_on_help_about(gpointer data)
 {
 	Camera * camera = data;
 	GtkWidget * widget;
+	char const comments[] = N_("Simple camera application for the DeforaOS"
+			" desktop");
 
 	widget = desktop_about_dialog_new();
 	gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(
 				camera->window));
 	desktop_about_dialog_set_authors(widget, _authors);
-	desktop_about_dialog_set_comments(widget,
-			"Simple camera application for the DeforaOS desktop");
+	desktop_about_dialog_set_comments(widget, _(comments));
 	desktop_about_dialog_set_copyright(widget, _copyright);
 	desktop_about_dialog_set_license(widget, _license);
 	desktop_about_dialog_set_logo_icon_name(widget, "camera-photo");
@@ -661,7 +662,7 @@ static gboolean _camera_on_open(gpointer data)
 	if((camera->fd = open(camera->device, O_RDWR)) < 0)
 	{
 		error_set_code(1, "%s: %s (%s)", camera->device,
-				"Could not open the video capture device",
+				_("Could not open the video capture device"),
 				strerror(errno));
 		_camera_error(camera, error_get(), 1);
 		return FALSE;
@@ -698,13 +699,13 @@ static int _open_setup(Camera * camera)
 	/* check for errors */
 	if(_camera_ioctl(camera, VIDIOC_QUERYCAP, &camera->cap) == -1)
 		return -error_set_code(1, "%s: %s (%s)", camera->device,
-				"Could not obtain the capabilities",
+				_("Could not obtain the capabilities"),
 				strerror(errno));
 	if((camera->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0
 			/* FIXME also implement mmap() and streaming */
 			|| (camera->cap.capabilities & V4L2_CAP_READWRITE) == 0)
 		return -error_set_code(1, "%s: %s", camera->device,
-				"Unsupported capabilities");
+				_("Unsupported capabilities"));
 	/* reset cropping */
 	memset(&cropcap, 0, sizeof(cropcap));
 	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -717,16 +718,16 @@ static int _open_setup(Camera * camera)
 				&& errno == EINVAL)
 			/* XXX ignore this error for now */
 			error_set_code(1, "%s: %s", camera->device,
-					"Cropping not supported");
+					_("Cropping not supported"));
 	}
 	/* obtain the current format */
 	if(_camera_ioctl(camera, VIDIOC_G_FMT, &camera->format) == -1)
 		return -error_set_code(1, "%s: %s", camera->device,
-				"Could not obtain the video capture format");
+				_("Could not obtain the video capture format"));
 	/* check the current format */
 	if(camera->format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -error_set_code(1, "%s: %s", camera->device,
-				"Unsupported video capture type");
+				_("Unsupported video capture type"));
 	/* FIXME also try to obtain a RGB24 format if possible */
 	/* allocate the raw buffer */
 	cnt = camera->format.fmt.pix.sizeimage;
@@ -781,7 +782,7 @@ static void _camera_on_properties(gpointer data)
 	if(camera->rgb_buffer == NULL)
 		/* ignore the action */
 		return;
-	dialog = gtk_dialog_new_with_buttons("Properties",
+	dialog = gtk_dialog_new_with_buttons(_("Properties"),
 			GTK_WINDOW(camera->window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
@@ -794,17 +795,17 @@ static void _camera_on_properties(gpointer data)
 #endif
 	/* driver */
 	snprintf(buf, sizeof(buf), "%16s", (char *)camera->cap.driver);
-	hbox = _properties_label(camera, group, "Driver: ", buf);
+	hbox = _properties_label(camera, group, _("Driver: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* card */
 	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.card);
-	hbox = _properties_label(camera, group, "Card: ", buf);
+	hbox = _properties_label(camera, group, _("Card: "), buf);
 	/* bus info */
 	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.bus_info);
-	hbox = _properties_label(camera, group, "Bus info: ", buf);
+	hbox = _properties_label(camera, group, _("Bus info: "), buf);
 	/* version */
 	snprintf(buf, sizeof(buf), "0x%x", camera->cap.version);
-	hbox = _properties_label(camera, group, "Version: ", buf);
+	hbox = _properties_label(camera, group, _("Version: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	gtk_dialog_run(GTK_DIALOG(dialog));
