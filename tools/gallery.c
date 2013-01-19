@@ -15,6 +15,7 @@
 
 
 
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,6 +48,8 @@ static int _gallery(void)
 		fprintf(stderr, "%s: %s\n", gallery, strerror(errno));
 		return -1;
 	}
+	/* this error should be caught by the final program */
+	mkdir(path, 0777);
 	argv[3] = path;
 	execvp(argv[0], argv);
 	fprintf(stderr, "%s: %s: %s\n", gallery, argv[0], strerror(errno));
