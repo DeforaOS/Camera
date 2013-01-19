@@ -22,6 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <glib.h>
+#include <gtk/gtk.h>
 
 
 /* Gallery */
@@ -38,7 +39,13 @@ static int _gallery(void)
 	char const * homedir;
 	char const dcim[] = "DCIM";
 	char * path;
+#if GTK_CHECK_VERSION(2, 6, 0)
 	char * argv[] = { "browser", "-T", "--", NULL, NULL };
+	const int arg = 3;
+#else
+	char * argv[] = { "browser", "--", NULL, NULL };
+	const int arg = 2;
+#endif
 
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
@@ -50,7 +57,7 @@ static int _gallery(void)
 	}
 	/* this error should be caught by the final program */
 	mkdir(path, 0777);
-	argv[3] = path;
+	argv[arg] = path;
 	execvp(argv[0], argv);
 	fprintf(stderr, "%s: %s: %s\n", gallery, argv[0], strerror(errno));
 	g_free(path);
