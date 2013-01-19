@@ -18,6 +18,7 @@ static char const _license[] =
 
 
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #ifdef __NetBSD__
 # include <sys/videoio.h>
 #else
