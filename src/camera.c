@@ -592,7 +592,7 @@ static void _camera_on_file_close(gpointer data)
 {
 	Camera * camera = data;
 
-	_camera_on_closex(camera);
+	_camera_on_close(camera);
 }
 
 
