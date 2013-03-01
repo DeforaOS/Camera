@@ -111,6 +111,7 @@ static void _camera_on_file_properties(gpointer data);
 static void _camera_on_file_snapshot(gpointer data);
 static void _camera_on_edit_preferences(gpointer data);
 static void _camera_on_help_about(gpointer data);
+static void _camera_on_help_contents(gpointer data);
 #endif
 
 
@@ -155,6 +156,8 @@ static const DesktopMenu _camera_menu_edit[] =
 
 static const DesktopMenu _camera_menu_help[] =
 {
+	{ "_Contents", G_CALLBACK(_camera_on_help_contents), "help-contents", 0,
+		GDK_KEY_F1 },
 	{ "_About", G_CALLBACK(_camera_on_help_about), GTK_STOCK_ABOUT, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
@@ -644,6 +647,13 @@ static void _camera_on_help_about(gpointer data)
 	desktop_about_dialog_set_website(widget, "http://www.defora.org/");
 	gtk_dialog_run(GTK_DIALOG(widget));
 	gtk_widget_destroy(widget);
+}
+
+
+/* camera_on_help_contents */
+static void _camera_on_help_contents(gpointer data)
+{
+	desktop_help_contents(PACKAGE, "camera");
 }
 #endif
 
