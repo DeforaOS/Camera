@@ -93,6 +93,7 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 static gboolean _camera_on_can_read(GIOChannel * channel,
 		GIOCondition condition, gpointer data);
 static void _camera_on_close(gpointer data);
+static void _camera_on_contents(gpointer data);
 static gboolean _camera_on_closex(gpointer data);
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
@@ -128,6 +129,7 @@ static char const * _authors[] =
 static const DesktopAccel _camera_accel[] =
 {
 	{ G_CALLBACK(_camera_on_close), GDK_CONTROL_MASK, GDK_KEY_W },
+	{ G_CALLBACK(_camera_on_contents), 0, GDK_KEY_F1 },
 	{ NULL, 0, 0 }
 };
 #endif
@@ -548,6 +550,13 @@ static gboolean _camera_on_closex(gpointer data)
 }
 
 
+/* camera_on_contents */
+static void _camera_on_contents(gpointer data)
+{
+	desktop_help_contents(PACKAGE, "camera");
+}
+
+
 /* camera_on_drawing_area_configure */
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data)
@@ -653,7 +662,9 @@ static void _camera_on_help_about(gpointer data)
 /* camera_on_help_contents */
 static void _camera_on_help_contents(gpointer data)
 {
-	desktop_help_contents(PACKAGE, "camera");
+	Camera * camera = data;
+
+	_camera_on_contents(camera);
 }
 #endif
 
