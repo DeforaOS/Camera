@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camera 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-19 03:44+0100\n"
+"POT-Creation-Date: 2013-03-04 02:59+0100\n"
 "PO-Revision-Date: 2013-01-18 22:31+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -16,60 +16,60 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../src/camera.c:352 ../src/camera.c:355 ../src/camera.c:375
-#: ../src/camera.c:394 ../src/camera.c:418 ../src/camera.c:423
+#: ../src/camera.c:357 ../src/camera.c:360 ../src/camera.c:380
+#: ../src/camera.c:399 ../src/camera.c:423 ../src/camera.c:428
 msgid "Could not save picture"
 msgstr "Impossible d'enregistrer l'image"
 
-#: ../src/camera.c:453 ../src/camera.c:457
+#: ../src/camera.c:458 ../src/camera.c:462
 msgid "Error"
 msgstr "Erreur"
 
-#: ../src/camera.c:631
+#: ../src/camera.c:643
 msgid "Simple camera application for the DeforaOS desktop"
 msgstr "Caméra photo pour l'environnement DeforaOS"
 
-#: ../src/camera.c:665
+#: ../src/camera.c:686
 msgid "Could not open the video capture device"
 msgstr "Impossible d'ouvrir le périphérique de capture vidéo"
 
-#: ../src/camera.c:702
+#: ../src/camera.c:723
 msgid "Could not obtain the capabilities"
 msgstr "Impossible d'obtenir les capacités"
 
-#: ../src/camera.c:708
+#: ../src/camera.c:729
 msgid "Unsupported capabilities"
 msgstr "Capacités non supportées"
 
-#: ../src/camera.c:721
+#: ../src/camera.c:742
 msgid "Cropping not supported"
 msgstr "Recadrage non supporté"
 
-#: ../src/camera.c:726
+#: ../src/camera.c:747
 msgid "Could not obtain the video capture format"
 msgstr "Impossible d'obtenir le format de capture vidéo"
 
-#: ../src/camera.c:730
+#: ../src/camera.c:751
 msgid "Unsupported video capture type"
 msgstr "Type de capture vidéo non supporté"
 
-#: ../src/camera.c:785
+#: ../src/camera.c:806
 msgid "Properties"
 msgstr "Propriétés"
 
-#: ../src/camera.c:798
+#: ../src/camera.c:819
 msgid "Driver: "
 msgstr "Pilote : "
 
-#: ../src/camera.c:802
+#: ../src/camera.c:823
 msgid "Card: "
 msgstr "Carte : "
 
-#: ../src/camera.c:805
+#: ../src/camera.c:826
 msgid "Bus info: "
 msgstr "Bus : "
 
-#: ../src/camera.c:808
+#: ../src/camera.c:829
 msgid "Version: "
 msgstr "Version : "
 

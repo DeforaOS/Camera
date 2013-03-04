@@ -1,5 +1,5 @@
 PACKAGE	= Camera
-VERSION	= 0.0.0
+VERSION	= 0.0.1
 SUBDIRS	= data doc po src tools
 RM	= rm -f
 LN	= ln -f
