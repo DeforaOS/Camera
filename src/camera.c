@@ -238,7 +238,11 @@ Camera * camera_new(char const * device)
 	gtk_window_set_title(GTK_WINDOW(camera->window), "Camera");
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camera_on_closex), camera);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
 	vbox = gtk_vbox_new(FALSE, 0);
+#endif
 #ifdef EMBEDDED
 	desktop_accel_create(_camera_accel, camera, group);
 #endif
@@ -839,7 +843,11 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
 	hbox = gtk_hbox_new(FALSE, 4);
+#endif
 	widget = gtk_label_new(label);
 	gtk_widget_modify_font(widget, camera->bold);
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
