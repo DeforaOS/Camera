@@ -69,6 +69,10 @@ struct _Camera
 	/* decoding */
 	int yuv_amp;
 
+	/* overlays */
+	CameraOverlay ** overlays;
+	size_t overlays_cnt;
+
 	/* widgets */
 	PangoFontDescription * bold;
 	GdkGC * gc;
@@ -215,6 +219,8 @@ Camera * camera_new(char const * device)
 	camera->rgb_buffer = NULL;
 	camera->rgb_buffer_cnt = 0;
 	camera->yuv_amp = 255;
+	camera->overlays = NULL;
+	camera->overlays_cnt = 0;
 	camera->bold = NULL;
 	camera->gc = NULL;
 	camera->window = NULL;
@@ -293,8 +299,13 @@ Camera * camera_new(char const * device)
 /* camera_delete */
 void camera_delete(Camera * camera)
 {
+	size_t i;
+
 	if(camera->source != 0)
 		g_source_remove(camera->source);
+	for(i = 0; i < camera->overlays_cnt; i++)
+		cameraoverlay_delete(camera->overlays[i]);
+	free(camera->overlays);
 	if(camera->channel != NULL)
 	{
 		/* XXX we ignore errors at this point */
@@ -323,6 +334,23 @@ void camera_delete(Camera * camera)
 
 
 /* useful */
+/* camera_add_overlay */
+CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
+		int opacity)
+{
+	CameraOverlay ** p;
+
+	if((p = realloc(camera->overlays, (camera->overlays_cnt + 1)
+					* sizeof(*p))) == NULL)
+		return NULL;
+	camera->overlays = p;
+	if((camera->overlays[camera->overlays_cnt] = cameraoverlay_new(
+					filename, opacity)) == NULL)
+		return NULL;
+	return camera->overlays[camera->overlays_cnt++];
+}
+
+
 /* camera_snapshot */
 static int _snapshot_dcim(Camera * camera, char const * homedir,
 		char const * dcim);
@@ -865,6 +893,7 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 static void _refresh_convert(Camera * camera);
 static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 		uint8_t * r, uint8_t * g, uint8_t * b);
+static void _refresh_overlays(Camera * camera, GdkPixbuf * pixbuf);
 
 static gboolean _camera_on_refresh(gpointer data)
 {
@@ -880,7 +909,8 @@ static gboolean _camera_on_refresh(gpointer data)
 			camera->format.fmt.pix.pixelformat);
 #endif
 	_refresh_convert(camera);
-	if(width == allocation->width && height == allocation->height)
+	if(width == allocation->width && height == allocation->height
+			&& camera->overlays_cnt == 0)
 		/* render directly */
 		gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0,
 				width, height, GDK_RGB_DITHER_NORMAL,
@@ -893,6 +923,7 @@ static gboolean _camera_on_refresh(gpointer data)
 				width * 3, NULL, NULL);
 		pixbuf2 = gdk_pixbuf_scale_simple(pixbuf, allocation->width,
 				allocation->height, GDK_INTERP_BILINEAR);
+		_refresh_overlays(camera, pixbuf2);
 		gdk_pixbuf_render_to_drawable(pixbuf2, camera->pixmap,
 				camera->gc, 0, 0, 0, 0, -1, -1,
 				GDK_RGB_DITHER_NORMAL, 0, 0);
@@ -959,6 +990,14 @@ static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 	*r = (dr < 0) ? 0 : ((dr > 255) ? 255 : dr);
 	*g = (dg < 0) ? 0 : ((dg > 255) ? 255 : dg);
 	*b = (db < 0) ? 0 : ((db > 255) ? 255 : db);
+}
+
+static void _refresh_overlays(Camera * camera, GdkPixbuf * pixbuf)
+{
+	size_t i;
+
+	for(i = 0; i < camera->overlays_cnt; i++)
+		cameraoverlay_blit(camera->overlays[i], pixbuf);
 }
 
 

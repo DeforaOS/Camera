@@ -17,15 +17,18 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-camera_OBJS = camera.o main.o
+camera_OBJS = camera.o overlay.o main.o
 camera_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 camera_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
 camera: $(camera_OBJS)
 	$(CC) -o camera $(camera_OBJS) $(camera_LDFLAGS)
 
-camera.o: camera.c camera.h
+camera.o: camera.c overlay.h camera.h
 	$(CC) $(camera_CFLAGS) -c camera.c
+
+overlay.o: overlay.c overlay.h
+	$(CC) $(camera_CFLAGS) -c overlay.c
 
 main.o: main.c camera.h
 	$(CC) $(camera_CFLAGS) -c main.c

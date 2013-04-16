@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2012 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Desktop Camera */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,19 +40,21 @@
 
 /* private */
 /* prototypes */
-static int _camera(char const * device);
+static int _camera(char const * device, char const * overlay);
 
 static int _usage(void);
 
 
 /* functions */
 /* camera */
-static int _camera(char const * device)
+static int _camera(char const * device, char const * overlay)
 {
 	Camera * camera;
 
 	if((camera = camera_new(device)) == NULL)
 		return error_print(PACKAGE);
+	if(overlay != NULL)
+		camera_add_overlay(camera, overlay, 50);
 	gtk_main();
 	camera_delete(camera);
 	return 0;
@@ -62,8 +64,9 @@ static int _camera(char const * device)
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: camera [-d device]\n"
-"  -d	Video device to open\n"), stderr);
+	fputs(_("Usage: camera [-d device][-O filename]\n"
+"  -d	Video device to open\n"
+"  -O	Use this file as an overlay\n"), stderr);
 	return 1;
 }
 
@@ -75,21 +78,25 @@ int main(int argc, char * argv[])
 {
 	int o;
 	char const * device = NULL;
+	char const * overlay = NULL;
 
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "d:")) != -1)
+	while((o = getopt(argc, argv, "d:O:")) != -1)
 		switch(o)
 		{
 			case 'd':
 				device = optarg;
+				break;
+			case 'O':
+				overlay = optarg;
 				break;
 			default:
 				return _usage();
 		}
 	if(optind != argc)
 		return _usage();
-	return (_camera(device) == 0) ? 0 : 2;
+	return (_camera(device, overlay) == 0) ? 0 : 2;
 }

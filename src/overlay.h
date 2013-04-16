@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS desktop camera */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,25 +15,24 @@
 
 
 
-#ifndef CAMERA_CAMERA_H
-# define CAMERA_CAMERA_H
-
-# include "overlay.h"
+#ifndef CAMERA_OVERLAY_H
+# define CAMERA_OVERLAY_H
 
 
 /* public */
 /* types */
-typedef struct _Camera Camera;
+typedef struct _CameraOverlay CameraOverlay;
 
 
 /* functions */
-Camera * camera_new(char const * device);
-void camera_delete(Camera * camera);
+CameraOverlay * cameraoverlay_new(char const * filename, int opacity);
+void cameraoverlay_delete(CameraOverlay * overlay);
+
+/* accessors */
+int cameraoverlay_get_opacity(CameraOverlay * overlay);
+void cameraoverlay_set_opacity(CameraOverlay * overlay, int opacity);
 
 /* useful */
-int camera_snapshot(Camera * camera);
+void cameraoverlay_blit(CameraOverlay * overlay, GdkPixbuf * dest);
 
-CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
-		int opacity);
-
-#endif /* !CAMERA_CAMERA_H */
+#endif /* !CAMERA_OVERLAY_H */

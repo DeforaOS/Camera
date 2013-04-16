@@ -36,9 +36,11 @@ dist:
 		$(PACKAGE)-$(VERSION)/po/fr.po \
 		$(PACKAGE)-$(VERSION)/po/project.conf \
 		$(PACKAGE)-$(VERSION)/src/camera.c \
+		$(PACKAGE)-$(VERSION)/src/overlay.c \
 		$(PACKAGE)-$(VERSION)/src/main.c \
 		$(PACKAGE)-$(VERSION)/src/Makefile \
 		$(PACKAGE)-$(VERSION)/src/camera.h \
+		$(PACKAGE)-$(VERSION)/src/overlay.h \
 		$(PACKAGE)-$(VERSION)/src/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/gallery.c \
 		$(PACKAGE)-$(VERSION)/tools/Makefile \
