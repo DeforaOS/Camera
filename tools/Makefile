@@ -35,7 +35,7 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- gallery $(DESTDIR)$(BINDIR)/gallery
+	$(INSTALL) -m 0755 gallery $(DESTDIR)$(BINDIR)/gallery
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(BINDIR)/gallery

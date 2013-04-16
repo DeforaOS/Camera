@@ -38,7 +38,7 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 -- camera $(DESTDIR)$(BINDIR)/camera
+	$(INSTALL) -m 0755 camera $(DESTDIR)$(BINDIR)/camera
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(BINDIR)/camera
