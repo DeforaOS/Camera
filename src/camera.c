@@ -881,9 +881,11 @@ static void _camera_on_properties(gpointer data)
 	/* card */
 	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.card);
 	hbox = _properties_label(camera, group, _("Card: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* bus info */
 	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.bus_info);
 	hbox = _properties_label(camera, group, _("Bus info: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* version */
 	snprintf(buf, sizeof(buf), "0x%x", camera->cap.version);
 	hbox = _properties_label(camera, group, _("Version: "), buf);
