@@ -84,8 +84,14 @@ void cameraoverlay_set_opacity(CameraOverlay * overlay, int opacity)
 /* useful */
 void cameraoverlay_blit(CameraOverlay * overlay, GdkPixbuf * dest)
 {
-	/* XXX hard-coded */
-	gdk_pixbuf_composite(overlay->pixbuf, dest, 0, 0, overlay->width,
-			overlay->height, 0, 0, 1.0, 1.0,
+	int width = gdk_pixbuf_get_width(dest);
+	int height = gdk_pixbuf_get_height(dest);
+	gdouble wratio = width;
+	gdouble hratio = height;
+
+	wratio /= overlay->width;
+	hratio /= overlay->height;
+	gdk_pixbuf_composite(overlay->pixbuf, dest, 0, 0,
+			width, height, 0, 0, wratio, hratio,
 			GDK_INTERP_BILINEAR, overlay->opacity);
 }
