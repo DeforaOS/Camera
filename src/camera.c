@@ -42,6 +42,14 @@ static char const _license[] =
 #define _(string) gettext(string)
 #define N_(string) (string)
 
+/* constants */
+#ifndef PREFIX
+# define PREFIX		"/usr/local"
+#endif
+#ifndef BINDIR
+# define BINDIR		PREFIX "/bin"
+#endif
+
 
 /* Camera */
 /* private */
@@ -103,6 +111,7 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
+static void _camera_on_gallery(gpointer data);
 static gboolean _camera_on_open(gpointer data);
 static void _camera_on_preferences(gpointer data);
 static void _camera_on_properties(gpointer data);
@@ -182,6 +191,9 @@ static const DesktopMenubar _camera_menubar[] =
 static DesktopToolbar _camera_toolbar[] =
 {
 	{ "Snapshot", G_CALLBACK(_camera_on_snapshot), "camera-photo", 0, 0,
+		NULL },
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ "Gallery", G_CALLBACK(_camera_on_gallery), "image-x-generic", 0, 0,
 		NULL },
 #ifdef EMBEDDED
 	{ "", NULL, NULL, 0, 0, NULL },
@@ -699,6 +711,22 @@ static void _camera_on_help_contents(gpointer data)
 	_camera_on_contents(camera);
 }
 #endif
+
+
+static void _camera_on_gallery(gpointer data)
+{
+	Camera * camera = data;
+	char * argv[] = { BINDIR "/gallery", "gallery", NULL };
+	const GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			!= TRUE && error != NULL)
+	{
+		_camera_error(camera, error->message, 1);
+		g_error_free(error);
+	}
+}
 
 
 /* camera_on_open */
