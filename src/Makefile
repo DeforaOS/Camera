@@ -24,7 +24,7 @@ camera_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 camera: $(camera_OBJS)
 	$(CC) -o camera $(camera_OBJS) $(camera_LDFLAGS)
 
-camera.o: camera.c overlay.h camera.h
+camera.o: camera.c overlay.h camera.h ../config.h
 	$(CC) $(camera_CFLAGS) -c camera.c
 
 overlay.o: overlay.c overlay.h
