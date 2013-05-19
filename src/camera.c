@@ -859,6 +859,22 @@ static void _camera_on_properties(gpointer data)
 	GtkWidget * vbox;
 	GtkWidget * hbox;
 	char buf[64];
+	const struct
+	{
+		unsigned int capability;
+		char const * name;
+	} capabilities[] =
+	{
+		{ V4L2_CAP_VIDEO_CAPTURE,	"capture"	},
+		{ V4L2_CAP_VIDEO_OUTPUT,	"output"	},
+		{ V4L2_CAP_VIDEO_OVERLAY,	"overlay"	},
+		{ V4L2_CAP_TUNER,		"tuner"		},
+		{ V4L2_CAP_AUDIO,		"audio"		},
+		{ V4L2_CAP_STREAMING,		"streaming"	},
+		{ 0,				NULL		}
+	};
+	unsigned int i;
+	char const * sep = "";
 
 	if(camera->rgb_buffer == NULL)
 		/* ignore the action */
@@ -889,6 +905,19 @@ static void _camera_on_properties(gpointer data)
 	/* version */
 	snprintf(buf, sizeof(buf), "0x%x", camera->cap.version);
 	hbox = _properties_label(camera, group, _("Version: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* capabilities */
+	buf[0] = '\0';
+	for(i = 0; capabilities[i].name != NULL; i++)
+		if(camera->cap.capabilities & capabilities[i].capability)
+		{
+			strncat(buf, sep, sizeof(buf) - strlen(buf));
+			strncat(buf, capabilities[i].name, sizeof(buf)
+					- strlen(buf));
+			sep = ", ";
+		}
+	buf[sizeof(buf) - 1] = '\0';
+	hbox = _properties_label(camera, group, _("Capabilities: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	gtk_dialog_run(GTK_DIALOG(dialog));
