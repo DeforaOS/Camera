@@ -121,6 +121,7 @@ static void _camera_on_snapshot(gpointer data);
 #ifndef EMBEDDED
 /* menus */
 static void _camera_on_file_close(gpointer data);
+static void _camera_on_file_gallery(gpointer data);
 static void _camera_on_file_properties(gpointer data);
 static void _camera_on_file_snapshot(gpointer data);
 static void _camera_on_edit_preferences(gpointer data);
@@ -153,6 +154,9 @@ static const DesktopMenu _camera_menu_file[] =
 {
 	{ "Take _snapshot", G_CALLBACK(_camera_on_file_snapshot),
 		"camera-photo", 0, 0 },
+	{ "", NULL, NULL, 0, 0 },
+	{ "Gallery", G_CALLBACK(_camera_on_file_gallery), "image-x-generic", 0,
+		0 },
 	{ "", NULL, NULL, 0, 0 },
 	{ "_Properties", G_CALLBACK(_camera_on_file_properties),
 		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return },
@@ -649,6 +653,15 @@ static void _camera_on_file_close(gpointer data)
 	Camera * camera = data;
 
 	_camera_on_close(camera);
+}
+
+
+/* camera_on_file_gallery */
+static void _camera_on_file_gallery(gpointer data)
+{
+	Camera * camera = data;
+
+	_camera_on_gallery(camera);
 }
 
 
