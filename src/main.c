@@ -21,7 +21,7 @@
 #include <libintl.h>
 #include <gtk/gtk.h>
 #include <System.h>
-#include "camera.h"
+#include "window.h"
 #include "../config.h"
 #define _(string) gettext(string)
 
@@ -49,14 +49,14 @@ static int _usage(void);
 /* camera */
 static int _camera(char const * device, char const * overlay)
 {
-	Camera * camera;
+	CameraWindow * camera;
 
-	if((camera = camera_new(device)) == NULL)
+	if((camera = camerawindow_new(device)) == NULL)
 		return error_print(PACKAGE);
 	if(overlay != NULL)
-		camera_add_overlay(camera, overlay, 50);
+		camerawindow_add_overlay(camera, overlay, 50);
 	gtk_main();
-	camera_delete(camera);
+	camerawindow_delete(camera);
 	return 0;
 }
 

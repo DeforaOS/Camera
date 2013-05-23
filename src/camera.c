@@ -82,9 +82,10 @@ struct _Camera
 	size_t overlays_cnt;
 
 	/* widgets */
+	GtkWidget * widget;
+	GtkWidget * window;
 	PangoFontDescription * bold;
 	GdkGC * gc;
-	GtkWidget * window;
 #if GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * infobar;
 	GtkWidget * infobar_label;
@@ -104,91 +105,18 @@ static int _camera_ioctl(Camera * camera, unsigned long request,
 /* callbacks */
 static gboolean _camera_on_can_read(GIOChannel * channel,
 		GIOCondition condition, gpointer data);
-static void _camera_on_close(gpointer data);
-static void _camera_on_contents(gpointer data);
-static gboolean _camera_on_closex(gpointer data);
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
 static void _camera_on_gallery(gpointer data);
 static gboolean _camera_on_open(gpointer data);
+#ifdef EMBEDDED
 static void _camera_on_preferences(gpointer data);
 static void _camera_on_properties(gpointer data);
+#endif
 static gboolean _camera_on_refresh(gpointer data);
 static void _camera_on_snapshot(gpointer data);
-
-#ifndef EMBEDDED
-/* menus */
-static void _camera_on_file_close(gpointer data);
-static void _camera_on_file_gallery(gpointer data);
-static void _camera_on_file_properties(gpointer data);
-static void _camera_on_file_snapshot(gpointer data);
-static void _camera_on_edit_preferences(gpointer data);
-static void _camera_on_help_about(gpointer data);
-static void _camera_on_help_contents(gpointer data);
-#endif
-
-
-/* constants */
-#ifndef EMBEDDED
-static char const * _authors[] =
-{
-	"Pierre Pronchery <khorben@defora.org>",
-	NULL
-};
-#endif
-
-#ifdef EMBEDDED
-static const DesktopAccel _camera_accel[] =
-{
-	{ G_CALLBACK(_camera_on_close), GDK_CONTROL_MASK, GDK_KEY_W },
-	{ G_CALLBACK(_camera_on_contents), 0, GDK_KEY_F1 },
-	{ NULL, 0, 0 }
-};
-#endif
-
-#ifndef EMBEDDED
-/* menus */
-static const DesktopMenu _camera_menu_file[] =
-{
-	{ "Take _snapshot", G_CALLBACK(_camera_on_file_snapshot),
-		"camera-photo", 0, 0 },
-	{ "", NULL, NULL, 0, 0 },
-	{ "Gallery", G_CALLBACK(_camera_on_file_gallery), "image-x-generic", 0,
-		0 },
-	{ "", NULL, NULL, 0, 0 },
-	{ "_Properties", G_CALLBACK(_camera_on_file_properties),
-		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return },
-	{ "", NULL, NULL, 0, 0 },
-	{ "_Close", G_CALLBACK(_camera_on_file_close), GTK_STOCK_CLOSE,
-		GDK_CONTROL_MASK, GDK_KEY_W },
-	{ NULL, NULL, NULL, 0, 0 }
-};
-
-static const DesktopMenu _camera_menu_edit[] =
-{
-	{ "_Preferences", G_CALLBACK(_camera_on_edit_preferences),
-		GTK_STOCK_PREFERENCES, GDK_CONTROL_MASK, GDK_KEY_P },
-	{ NULL, NULL, NULL, 0, 0 }
-};
-
-static const DesktopMenu _camera_menu_help[] =
-{
-	{ "_Contents", G_CALLBACK(_camera_on_help_contents), "help-contents", 0,
-		GDK_KEY_F1 },
-	{ "_About", G_CALLBACK(_camera_on_help_about), GTK_STOCK_ABOUT, 0, 0 },
-	{ NULL, NULL, NULL, 0, 0 }
-};
-
-static const DesktopMenubar _camera_menubar[] =
-{
-	{ "_File", _camera_menu_file },
-	{ "_Edit", _camera_menu_edit },
-	{ "_Help", _camera_menu_help },
-	{ NULL, NULL }
-};
-#endif
 
 
 /* variables */
@@ -214,10 +142,10 @@ static DesktopToolbar _camera_toolbar[] =
 /* public */
 /* functions */
 /* camera_new */
-Camera * camera_new(char const * device)
+Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
+		char const * device)
 {
 	Camera * camera;
-	GtkAccelGroup * group;
 	GtkWidget * vbox;
 	GtkWidget * widget;
 
@@ -237,9 +165,10 @@ Camera * camera_new(char const * device)
 	camera->yuv_amp = 255;
 	camera->overlays = NULL;
 	camera->overlays_cnt = 0;
+	camera->widget = NULL;
+	camera->window = NULL;
 	camera->bold = NULL;
 	camera->gc = NULL;
-	camera->window = NULL;
 	/* check for errors */
 	if(camera->device == NULL)
 	{
@@ -249,30 +178,13 @@ Camera * camera_new(char const * device)
 	/* create the window */
 	camera->bold = pango_font_description_new();
 	pango_font_description_set_weight(camera->bold, PANGO_WEIGHT_BOLD);
-	group = gtk_accel_group_new();
-	camera->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_widget_realize(camera->window);
-	camera->gc = gdk_gc_new(camera->window->window); /* XXX */
-	gtk_window_add_accel_group(GTK_WINDOW(camera->window), group);
-#if GTK_CHECK_VERSION(2, 6, 0)
-	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-photo");
-#endif
-	gtk_window_set_title(GTK_WINDOW(camera->window), "Camera");
-	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
-				_camera_on_closex), camera);
+	camera->gc = gdk_gc_new(window->window); /* XXX */
 #if GTK_CHECK_VERSION(3, 0, 0)
-	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	camera->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 #else
-	vbox = gtk_vbox_new(FALSE, 0);
+	camera->widget = gtk_vbox_new(FALSE, 0);
 #endif
-#ifdef EMBEDDED
-	desktop_accel_create(_camera_accel, camera, group);
-#endif
-#ifndef EMBEDDED
-	/* menubar */
-	widget = desktop_menubar_create(_camera_menubar, camera, group);
-	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
-#endif
+	vbox = camera->widget;
 	/* toolbar */
 	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), FALSE);
@@ -305,9 +217,8 @@ Camera * camera_new(char const * device)
 	g_signal_connect(camera->area, "expose-event", G_CALLBACK(
 				_camera_on_drawing_area_expose), camera);
 	gtk_box_pack_start(GTK_BOX(vbox), camera->area, TRUE, TRUE, 0);
-	gtk_container_add(GTK_CONTAINER(camera->window), vbox);
-	gtk_widget_show_all(camera->window);
-	camera->source = g_idle_add(_camera_on_open, camera);
+	gtk_widget_show_all(vbox);
+	camera_start(camera);
 	return camera;
 }
 
@@ -317,8 +228,7 @@ void camera_delete(Camera * camera)
 {
 	size_t i;
 
-	if(camera->source != 0)
-		g_source_remove(camera->source);
+	camera_stop(camera);
 	for(i = 0; i < camera->overlays_cnt; i++)
 		cameraoverlay_delete(camera->overlays[i]);
 	free(camera->overlays);
@@ -335,8 +245,6 @@ void camera_delete(Camera * camera)
 		g_object_unref(camera->pixmap);
 	if(camera->gc != NULL)
 		g_object_unref(camera->gc);
-	if(camera->window != NULL)
-		gtk_widget_destroy(camera->window);
 	if(camera->bold != NULL)
 		pango_font_description_free(camera->bold);
 	if(camera->fd >= 0)
@@ -346,6 +254,13 @@ void camera_delete(Camera * camera)
 	free(camera->raw_buffer);
 	string_delete(camera->device);
 	object_delete(camera);
+}
+
+
+/* accessors */
+GtkWidget * camera_get_widget(Camera * camera)
+{
+	return camera->widget;
 }
 
 
@@ -364,6 +279,129 @@ CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
 					filename, opacity)) == NULL)
 		return NULL;
 	return camera->overlays[camera->overlays_cnt++];
+}
+
+
+/* camera_open_gallery */
+void camera_open_gallery(Camera * camera)
+{
+	char * argv[] = { BINDIR "/gallery", "gallery", NULL };
+	const GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
+	GError * error = NULL;
+
+	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
+			!= TRUE && error != NULL)
+	{
+		_camera_error(camera, error->message, 1);
+		g_error_free(error);
+	}
+}
+
+
+/* camera_preferences */
+void camera_preferences(Camera * camera)
+{
+	/* FIXME implement */
+}
+
+
+/* camera_properties */
+static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
+		char const * label, char const * value);
+
+void camera_properties(Camera * camera)
+{
+	GtkWidget * dialog;
+	GtkSizeGroup * group;
+	GtkWidget * vbox;
+	GtkWidget * hbox;
+	char buf[64];
+	const struct
+	{
+		unsigned int capability;
+		char const * name;
+	} capabilities[] =
+	{
+		{ V4L2_CAP_VIDEO_CAPTURE,	"capture"	},
+		{ V4L2_CAP_VIDEO_OUTPUT,	"output"	},
+		{ V4L2_CAP_VIDEO_OVERLAY,	"overlay"	},
+		{ V4L2_CAP_TUNER,		"tuner"		},
+		{ V4L2_CAP_AUDIO,		"audio"		},
+		{ V4L2_CAP_STREAMING,		"streaming"	},
+		{ 0,				NULL		}
+	};
+	unsigned int i;
+	char const * sep = "";
+
+	if(camera->rgb_buffer == NULL)
+		/* ignore the action */
+		return;
+	dialog = gtk_dialog_new_with_buttons(_("Properties"),
+			GTK_WINDOW(camera->window),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 300, 200);
+	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = dialog->vbox;
+#endif
+	/* driver */
+	snprintf(buf, sizeof(buf), "%16s", (char *)camera->cap.driver);
+	hbox = _properties_label(camera, group, _("Driver: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* card */
+	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.card);
+	hbox = _properties_label(camera, group, _("Card: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* bus info */
+	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.bus_info);
+	hbox = _properties_label(camera, group, _("Bus info: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* version */
+	snprintf(buf, sizeof(buf), "0x%x", camera->cap.version);
+	hbox = _properties_label(camera, group, _("Version: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	/* capabilities */
+	buf[0] = '\0';
+	for(i = 0; capabilities[i].name != NULL; i++)
+		if(camera->cap.capabilities & capabilities[i].capability)
+		{
+			strncat(buf, sep, sizeof(buf) - strlen(buf));
+			strncat(buf, capabilities[i].name, sizeof(buf)
+					- strlen(buf));
+			sep = ", ";
+		}
+	buf[sizeof(buf) - 1] = '\0';
+	hbox = _properties_label(camera, group, _("Capabilities: "), buf);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
+}
+
+static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
+		char const * label, char const * value)
+{
+	GtkWidget * hbox;
+	GtkWidget * widget;
+
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	widget = gtk_label_new(label);
+	gtk_widget_modify_font(widget, camera->bold);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_size_group_add_widget(group, widget);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	widget = gtk_label_new((value != NULL) ? value : "");
+	gtk_label_set_ellipsize(GTK_LABEL(widget), PANGO_ELLIPSIZE_END);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
+	return hbox;
 }
 
 
@@ -482,6 +520,24 @@ static int _snapshot_save(Camera * camera, char const * path)
 }
 
 
+/* camera_start */
+void camera_start(Camera * camera)
+{
+	if(camera->source != 0)
+		return;
+	camera->source = g_idle_add(_camera_on_open, camera);
+}
+
+
+/* camera_stop */
+void camera_stop(Camera * camera)
+{
+	if(camera->source != 0)
+		g_source_remove(camera->source);
+	camera->source = 0;
+}
+
+
 /* private */
 /* functions */
 /* camera_error */
@@ -575,36 +631,6 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 }
 
 
-/* camera_on_close */
-static void _camera_on_close(gpointer data)
-{
-	Camera * camera = data;
-
-	gtk_widget_hide(camera->window);
-	if(camera->source != 0)
-		g_source_remove(camera->source);
-	camera->source = 0;
-	gtk_main_quit();
-}
-
-
-/* camera_on_closex */
-static gboolean _camera_on_closex(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_close(camera);
-	return TRUE;
-}
-
-
-/* camera_on_contents */
-static void _camera_on_contents(gpointer data)
-{
-	desktop_help_contents(PACKAGE, "camera");
-}
-
-
 /* camera_on_drawing_area_configure */
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data)
@@ -645,100 +671,12 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 }
 
 
-#ifndef EMBEDDED
-/* menus */
-/* camera_on_file_close */
-static void _camera_on_file_close(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_close(camera);
-}
-
-
-/* camera_on_file_gallery */
-static void _camera_on_file_gallery(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_gallery(camera);
-}
-
-
-/* camera_on_file_properties */
-static void _camera_on_file_properties(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_properties(camera);
-}
-
-
-/* camera_on_file_snapshot */
-static void _camera_on_file_snapshot(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_snapshot(camera);
-}
-
-
-/* camera_on_edit_preferences */
-static void _camera_on_edit_preferences(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_preferences(camera);
-}
-
-
-/* camera_on_help_about */
-static void _camera_on_help_about(gpointer data)
-{
-	Camera * camera = data;
-	GtkWidget * widget;
-	char const comments[] = N_("Simple camera application for the DeforaOS"
-			" desktop");
-
-	widget = desktop_about_dialog_new();
-	gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(
-				camera->window));
-	desktop_about_dialog_set_authors(widget, _authors);
-	desktop_about_dialog_set_comments(widget, _(comments));
-	desktop_about_dialog_set_copyright(widget, _copyright);
-	desktop_about_dialog_set_license(widget, _license);
-	desktop_about_dialog_set_logo_icon_name(widget, "camera-photo");
-	desktop_about_dialog_set_name(widget, PACKAGE);
-	desktop_about_dialog_set_version(widget, VERSION);
-	desktop_about_dialog_set_website(widget, "http://www.defora.org/");
-	gtk_dialog_run(GTK_DIALOG(widget));
-	gtk_widget_destroy(widget);
-}
-
-
-/* camera_on_help_contents */
-static void _camera_on_help_contents(gpointer data)
-{
-	Camera * camera = data;
-
-	_camera_on_contents(camera);
-}
-#endif
-
-
+/* camera_on_gallery */
 static void _camera_on_gallery(gpointer data)
 {
 	Camera * camera = data;
-	char * argv[] = { BINDIR "/gallery", "gallery", NULL };
-	const GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
-	GError * error = NULL;
 
-	if(g_spawn_async(NULL, argv, NULL, flags, NULL, NULL, NULL, &error)
-			!= TRUE && error != NULL)
-	{
-		_camera_error(camera, error->message, 1);
-		g_error_free(error);
-	}
+	camera_open_gallery(camera);
 }
 
 
@@ -853,112 +791,24 @@ static int _open_setup(Camera * camera)
 }
 
 
+#ifdef EMBEDDED
 /* camera_on_preferences */
 static void _camera_on_preferences(gpointer data)
 {
-	/* FIXME implement */
+	Camera * camera = data;
+
+	camera_preferences(camera);
 }
 
 
 /* camera_on_properties */
-static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
-		char const * label, char const * value);
-
 static void _camera_on_properties(gpointer data)
 {
 	Camera * camera = data;
-	GtkWidget * dialog;
-	GtkSizeGroup * group;
-	GtkWidget * vbox;
-	GtkWidget * hbox;
-	char buf[64];
-	const struct
-	{
-		unsigned int capability;
-		char const * name;
-	} capabilities[] =
-	{
-		{ V4L2_CAP_VIDEO_CAPTURE,	"capture"	},
-		{ V4L2_CAP_VIDEO_OUTPUT,	"output"	},
-		{ V4L2_CAP_VIDEO_OVERLAY,	"overlay"	},
-		{ V4L2_CAP_TUNER,		"tuner"		},
-		{ V4L2_CAP_AUDIO,		"audio"		},
-		{ V4L2_CAP_STREAMING,		"streaming"	},
-		{ 0,				NULL		}
-	};
-	unsigned int i;
-	char const * sep = "";
 
-	if(camera->rgb_buffer == NULL)
-		/* ignore the action */
-		return;
-	dialog = gtk_dialog_new_with_buttons(_("Properties"),
-			GTK_WINDOW(camera->window),
-			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 300, 200);
-	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-#if GTK_CHECK_VERSION(2, 14, 0)
-	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-#else
-	vbox = dialog->vbox;
-#endif
-	/* driver */
-	snprintf(buf, sizeof(buf), "%16s", (char *)camera->cap.driver);
-	hbox = _properties_label(camera, group, _("Driver: "), buf);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	/* card */
-	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.card);
-	hbox = _properties_label(camera, group, _("Card: "), buf);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	/* bus info */
-	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.bus_info);
-	hbox = _properties_label(camera, group, _("Bus info: "), buf);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	/* version */
-	snprintf(buf, sizeof(buf), "0x%x", camera->cap.version);
-	hbox = _properties_label(camera, group, _("Version: "), buf);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	/* capabilities */
-	buf[0] = '\0';
-	for(i = 0; capabilities[i].name != NULL; i++)
-		if(camera->cap.capabilities & capabilities[i].capability)
-		{
-			strncat(buf, sep, sizeof(buf) - strlen(buf));
-			strncat(buf, capabilities[i].name, sizeof(buf)
-					- strlen(buf));
-			sep = ", ";
-		}
-	buf[sizeof(buf) - 1] = '\0';
-	hbox = _properties_label(camera, group, _("Capabilities: "), buf);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-	gtk_widget_show_all(vbox);
-	gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
+	camera_properties(camera);
 }
-
-static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
-		char const * label, char const * value)
-{
-	GtkWidget * hbox;
-	GtkWidget * widget;
-
-#if GTK_CHECK_VERSION(3, 0, 0)
-	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
 #endif
-	widget = gtk_label_new(label);
-	gtk_widget_modify_font(widget, camera->bold);
-	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
-	gtk_size_group_add_widget(group, widget);
-	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	widget = gtk_label_new((value != NULL) ? value : "");
-	gtk_label_set_ellipsize(GTK_LABEL(widget), PANGO_ELLIPSIZE_END);
-	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
-	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
-	return hbox;
-}
 
 
 /* camera_on_refresh */

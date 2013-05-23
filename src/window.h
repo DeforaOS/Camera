@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2013 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS desktop camera */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,23 @@
 
 
 
-#ifndef CAMERA_CAMERA_H
-# define CAMERA_CAMERA_H
+#ifndef CAMERA_WINDOW_H
+# define CAMERA_WINDOW_H
 
 # include "overlay.h"
 
 
 /* public */
 /* types */
-typedef struct _Camera Camera;
+typedef struct _CameraWindow CameraWindow;
 
 
 /* functions */
-Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device);
-void camera_delete(Camera * camera);
-
-/* accessors */
-GtkWidget * camera_get_widget(Camera * camera);
+CameraWindow * camerawindow_new(char const * device);
+void camerawindow_delete(CameraWindow * camera);
 
 /* useful */
-void camera_open_gallery(Camera * camera);
+CameraOverlay * camerawindow_add_overlay(CameraWindow * camera,
+		char const * filename, int opacity);
 
-void camera_preferences(Camera * camera);
-void camera_properties(Camera * camera);
-int camera_snapshot(Camera * camera);
-
-void camera_start(Camera * camera);
-void camera_stop(Camera * camera);
-
-CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
-		int opacity);
-
-#endif /* !CAMERA_CAMERA_H */
+#endif /* !CAMERA_WINDOW_H */

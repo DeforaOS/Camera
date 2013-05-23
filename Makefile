@@ -37,6 +37,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/po/project.conf \
 		$(PACKAGE)-$(VERSION)/src/camera.c \
 		$(PACKAGE)-$(VERSION)/src/overlay.c \
+		$(PACKAGE)-$(VERSION)/src/window.c \
 		$(PACKAGE)-$(VERSION)/src/main.c \
 		$(PACKAGE)-$(VERSION)/src/Makefile \
 		$(PACKAGE)-$(VERSION)/src/camera.h \
