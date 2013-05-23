@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camera 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-05-23 21:25+0200\n"
+"POT-Creation-Date: 2013-05-23 21:35+0200\n"
 "PO-Revision-Date: 2013-01-18 22:31+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -83,6 +83,6 @@ msgstr ""
 "  -d\tPériphérique video à ouvrir\n"
 "  -O\tFichier en surimpression\n"
 
-#: ../src/window.c:283
+#: ../src/window.c:279
 msgid "Simple camera application for the DeforaOS desktop"
 msgstr "Caméra photo pour l'environnement DeforaOS"

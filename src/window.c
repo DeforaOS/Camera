@@ -47,10 +47,6 @@ struct _CameraWindow
 static void _camerawindow_on_close(gpointer data);
 static gboolean _camerawindow_on_closex(gpointer data);
 static void _camerawindow_on_contents(gpointer data);
-static void _camerawindow_on_gallery(gpointer data);
-static void _camerawindow_on_preferences(gpointer data);
-static void _camerawindow_on_properties(gpointer data);
-static void _camerawindow_on_snapshot(gpointer data);
 
 #ifndef EMBEDDED
 /* menus */
@@ -244,7 +240,7 @@ static void _camerawindow_on_file_gallery(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	_camerawindow_on_gallery(camera);
+	camera_open_gallery(camera->camera);
 }
 
 
@@ -253,7 +249,7 @@ static void _camerawindow_on_file_properties(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	_camerawindow_on_properties(camera);
+	camera_properties(camera->camera);
 }
 
 
@@ -262,7 +258,7 @@ static void _camerawindow_on_file_snapshot(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	_camerawindow_on_snapshot(camera);
+	camera_snapshot(camera->camera);
 }
 
 
@@ -271,7 +267,7 @@ static void _camerawindow_on_edit_preferences(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	_camerawindow_on_preferences(camera);
+	camera_preferences(camera->camera);
 }
 
 
@@ -307,39 +303,3 @@ static void _camerawindow_on_help_contents(gpointer data)
 	_camerawindow_on_contents(camera);
 }
 #endif
-
-
-/* camerawindow_on_gallery */
-static void _camerawindow_on_gallery(gpointer data)
-{
-	CameraWindow * camera = data;
-
-	camera_open_gallery(camera->camera);
-}
-
-
-/* camerawindow_on_preferences */
-static void _camerawindow_on_preferences(gpointer data)
-{
-	CameraWindow * camera = data;
-
-	camera_preferences(camera->camera);
-}
-
-
-/* camerawindow_on_properties */
-static void _camerawindow_on_properties(gpointer data)
-{
-	CameraWindow * camera = data;
-
-	camera_properties(camera->camera);
-}
-
-
-/* camerawindow_on_snapshot */
-static void _camerawindow_on_snapshot(gpointer data)
-{
-	CameraWindow * camera = data;
-
-	camera_snapshot(camera->camera);
-}
