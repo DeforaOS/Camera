@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camera 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-04 02:59+0100\n"
+"POT-Creation-Date: 2013-05-23 21:25+0200\n"
 "PO-Revision-Date: 2013-01-18 22:31+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -16,67 +16,73 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../src/camera.c:357 ../src/camera.c:360 ../src/camera.c:380
-#: ../src/camera.c:399 ../src/camera.c:423 ../src/camera.c:428
-msgid "Could not save picture"
-msgstr "Impossible d'enregistrer l'image"
-
-#: ../src/camera.c:458 ../src/camera.c:462
-msgid "Error"
-msgstr "Erreur"
-
-#: ../src/camera.c:643
-msgid "Simple camera application for the DeforaOS desktop"
-msgstr "Caméra photo pour l'environnement DeforaOS"
-
-#: ../src/camera.c:686
-msgid "Could not open the video capture device"
-msgstr "Impossible d'ouvrir le périphérique de capture vidéo"
-
-#: ../src/camera.c:723
-msgid "Could not obtain the capabilities"
-msgstr "Impossible d'obtenir les capacités"
-
-#: ../src/camera.c:729
-msgid "Unsupported capabilities"
-msgstr "Capacités non supportées"
-
-#: ../src/camera.c:742
-msgid "Cropping not supported"
-msgstr "Recadrage non supporté"
-
-#: ../src/camera.c:747
-msgid "Could not obtain the video capture format"
-msgstr "Impossible d'obtenir le format de capture vidéo"
-
-#: ../src/camera.c:751
-msgid "Unsupported video capture type"
-msgstr "Type de capture vidéo non supporté"
-
-#: ../src/camera.c:806
+#: ../src/camera.c:339
 msgid "Properties"
 msgstr "Propriétés"
 
-#: ../src/camera.c:819
+#: ../src/camera.c:352
 msgid "Driver: "
 msgstr "Pilote : "
 
-#: ../src/camera.c:823
+#: ../src/camera.c:356
 msgid "Card: "
 msgstr "Carte : "
 
-#: ../src/camera.c:826
+#: ../src/camera.c:360
 msgid "Bus info: "
 msgstr "Bus : "
 
-#: ../src/camera.c:829
+#: ../src/camera.c:364
 msgid "Version: "
 msgstr "Version : "
 
-#: ../src/main.c:65
+#: ../src/camera.c:377
+msgid "Capabilities: "
+msgstr "Capacités : "
+
+#: ../src/camera.c:443 ../src/camera.c:446 ../src/camera.c:466
+#: ../src/camera.c:485 ../src/camera.c:509 ../src/camera.c:514
+msgid "Could not save picture"
+msgstr "Impossible d'enregistrer l'image"
+
+#: ../src/camera.c:562 ../src/camera.c:566
+msgid "Error"
+msgstr "Erreur"
+
+#: ../src/camera.c:697
+msgid "Could not open the video capture device"
+msgstr "Impossible d'ouvrir le périphérique de capture vidéo"
+
+#: ../src/camera.c:734
+msgid "Could not obtain the capabilities"
+msgstr "Impossible d'obtenir les capacités"
+
+#: ../src/camera.c:740
+msgid "Unsupported capabilities"
+msgstr "Capacités non supportées"
+
+#: ../src/camera.c:753
+msgid "Cropping not supported"
+msgstr "Recadrage non supporté"
+
+#: ../src/camera.c:758
+msgid "Could not obtain the video capture format"
+msgstr "Impossible d'obtenir le format de capture vidéo"
+
+#: ../src/camera.c:762
+msgid "Unsupported video capture type"
+msgstr "Type de capture vidéo non supporté"
+
+#: ../src/main.c:67
 msgid ""
-"Usage: camera [-d device]\n"
+"Usage: camera [-d device][-O filename]\n"
 "  -d\tVideo device to open\n"
+"  -O\tUse this file as an overlay\n"
 msgstr ""
 "Usage: camera [-d périphérique]\n"
 "  -d\tPériphérique video à ouvrir\n"
+"  -O\tFichier en surimpression\n"
+
+#: ../src/window.c:283
+msgid "Simple camera application for the DeforaOS desktop"
+msgstr "Caméra photo pour l'environnement DeforaOS"
