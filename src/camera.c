@@ -597,22 +597,27 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 		GIOCondition condition, gpointer data)
 {
 	Camera * camera = data;
-	ssize_t s;
+	GIOStatus status;
+	gsize size;
+	GError * error = NULL;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
 	if(channel != camera->channel || condition != G_IO_IN)
 		return FALSE;
-	if((s = read(camera->fd, camera->raw_buffer, camera->raw_buffer_cnt))
-			<= 0)
+	status = g_io_channel_read_chars(channel, camera->raw_buffer,
+			camera->raw_buffer_cnt, &size, &error);
+	/* this status can be ignored */
+	if(status == G_IO_STATUS_AGAIN)
+		return TRUE;
+	if(status == G_IO_STATUS_ERROR)
 	{
-		/* this error can be ignored */
-		if(errno == EAGAIN)
-			return TRUE;
+		/* FIXME use g_io_channel_shutdown() instead */
 		close(camera->fd);
 		camera->fd = -1;
-		_camera_error(camera, strerror(errno), 1);
+		_camera_error(camera, error->message, 1);
+		g_error_free(error);
 		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget),
 				FALSE);
 #ifdef EMBEDDED
@@ -623,8 +628,8 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 		return FALSE;
 	}
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s() %lu %ld\n", __func__,
-			camera->raw_buffer_cnt, s);
+	fprintf(stderr, "DEBUG: %s() %lu %lu\n", __func__,
+			camera->raw_buffer_cnt, size);
 #endif
 	camera->source = g_idle_add(_camera_on_refresh, camera);
 	return FALSE;
