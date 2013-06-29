@@ -42,6 +42,7 @@ dist:
 		$(PACKAGE)-$(VERSION)/src/Makefile \
 		$(PACKAGE)-$(VERSION)/src/camera.h \
 		$(PACKAGE)-$(VERSION)/src/overlay.h \
+		$(PACKAGE)-$(VERSION)/src/window.h \
 		$(PACKAGE)-$(VERSION)/src/project.conf \
 		$(PACKAGE)-$(VERSION)/tools/gallery.c \
 		$(PACKAGE)-$(VERSION)/tools/Makefile \
