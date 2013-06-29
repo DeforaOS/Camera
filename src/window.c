@@ -105,8 +105,8 @@ static const DesktopMenu _camerawindow_menu_edit[] =
 
 static const DesktopMenu _camerawindow_menu_help[] =
 {
-	{ "_Contents", G_CALLBACK(_camerawindow_on_help_contents), "help-contents", 0,
-		GDK_KEY_F1 },
+	{ "_Contents", G_CALLBACK(_camerawindow_on_help_contents),
+		"help-contents", 0, GDK_KEY_F1 },
 	{ "_About", G_CALLBACK(_camerawindow_on_help_about), GTK_STOCK_ABOUT, 0, 0 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
