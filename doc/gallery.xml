@@ -53,8 +53,8 @@
 	</refsynopsisdiv>
 	<refsect1 id="description">
 		<title>Description</title>
-		<para><command>&name;</command> is a webcam application, with the ability to
-			take pictures.</para>
+		<para><command>&name;</command> is a viewer for pictures taken by the camera
+			application.</para>
 	</refsect1>
 	<refsect1 id="options">
 		<title>Options</title>
