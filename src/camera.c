@@ -236,10 +236,7 @@ void camera_delete(Camera * camera)
 	{
 		/* XXX we ignore errors at this point */
 		g_io_channel_shutdown(camera->channel, TRUE, NULL);
-#if 0
-		/* FIXME seems to cause a crash */
-		g_object_unref(camera->channel);
-#endif
+		g_io_channel_unref(camera->channel);
 	}
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
@@ -613,8 +610,9 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 		return TRUE;
 	if(status == G_IO_STATUS_ERROR)
 	{
-		/* FIXME use g_io_channel_shutdown() instead */
-		close(camera->fd);
+		g_io_channel_shutdown(camera->channel, TRUE, NULL);
+		g_io_channel_unref(camera->channel);
+		camera->channel = NULL;
 		camera->fd = -1;
 		_camera_error(camera, error->message, 1);
 		g_error_free(error);
