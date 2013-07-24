@@ -407,26 +407,39 @@ static int _snapshot_dcim(Camera * camera, char const * homedir,
 		char const * dcim);
 static char * _snapshot_path(Camera * camera, char const * homedir,
 		char const * dcim, char const * extension);
-static int _snapshot_save(Camera * camera, char const * path);
+static int _snapshot_save(Camera * camera, char const * path,
+		CameraSnapshotFormat format);
 
-int camera_snapshot(Camera * camera)
+int camera_snapshot(Camera * camera, CameraSnapshotFormat format)
 {
 	int ret;
 	char const * homedir;
 	char const dcim[] = "DCIM";
-	char const ext[] = ".png";
+	char const * ext;
+	char const png[] = ".png";
+	char const jpeg[] = ".jpeg";
 	char * path;
 
 	if(camera->rgb_buffer == NULL)
 		/* ignore the action */
 		return 0;
+	switch(format)
+	{
+		case CSF_JPEG:
+			ext = jpeg;
+			break;
+		case CSF_PNG:
+		default:
+			ext = png;
+			break;
+	}
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
 	if(_snapshot_dcim(camera, homedir, dcim) != 0)
 		return -1;
 	if((path = _snapshot_path(camera, homedir, dcim, ext)) == NULL)
 		return -1;
-	ret = _snapshot_save(camera, path);
+	ret = _snapshot_save(camera, path, format);
 	free(path);
 	return ret;
 }
@@ -492,7 +505,8 @@ static char * _snapshot_path(Camera * camera, char const * homedir,
 	return NULL;
 }
 
-static int _snapshot_save(Camera * camera, char const * path)
+static int _snapshot_save(Camera * camera, char const * path,
+		CameraSnapshotFormat format)
 {
 	struct v4l2_pix_format * pix = &camera->format.fmt.pix;
 	GdkPixbuf * pixbuf;
@@ -504,12 +518,26 @@ static int _snapshot_save(Camera * camera, char const * path)
 					pix->width, pix->height, pix->width * 3,
 					NULL, NULL)) == NULL)
 		return -_camera_error(camera, _("Could not save picture"), 1);
-	res = gdk_pixbuf_save(pixbuf, path, "png", &error, NULL);
+	switch(format)
+	{
+		case CSF_JPEG:
+			res = gdk_pixbuf_save(pixbuf, path, "jpeg", &error,
+					"quality", 100, NULL);
+			break;
+		case CSF_PNG:
+			res = gdk_pixbuf_save(pixbuf, path, "png", &error,
+					NULL);
+			break;
+		default:
+			res = FALSE;
+			break;
+	}
 	g_object_unref(pixbuf);
 	if(res != TRUE)
 	{
 		error_set_code(1, "%s: %s", _("Could not save picture"),
-				error->message);
+				(error != NULL) ? error->message
+				: _("Unknown error"));
 		g_error_free(error);
 		return -_camera_error(camera, error_get(), 1);
 	}
@@ -931,5 +959,5 @@ static void _camera_on_snapshot(gpointer data)
 {
 	Camera * camera = data;
 
-	camera_snapshot(camera);
+	camera_snapshot(camera, CSF_PNG);
 }

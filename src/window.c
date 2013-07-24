@@ -258,7 +258,7 @@ static void _camerawindow_on_file_snapshot(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	camera_snapshot(camera->camera);
+	camera_snapshot(camera->camera, CSF_PNG);
 }
 
 

@@ -25,6 +25,12 @@
 /* types */
 typedef struct _Camera Camera;
 
+typedef enum _CameraSnapshotFormat
+{
+	CSF_PNG = 0,
+	CSF_JPEG
+} CameraSnapshotFormat;
+
 
 /* functions */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
@@ -39,7 +45,7 @@ void camera_open_gallery(Camera * camera);
 
 void camera_preferences(Camera * camera);
 void camera_properties(Camera * camera);
-int camera_snapshot(Camera * camera);
+int camera_snapshot(Camera * camera, CameraSnapshotFormat format);
 
 void camera_start(Camera * camera);
 void camera_stop(Camera * camera);
