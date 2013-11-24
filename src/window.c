@@ -29,6 +29,11 @@ static char const _license[] =
 #define _(string) gettext(string)
 #define N_(string) (string)
 
+/* constants */
+#ifndef PROGNAME
+# define PROGNAME	"camera"
+#endif
+
 
 /* CameraWindow */
 /* private */
@@ -220,7 +225,7 @@ static gboolean _camerawindow_on_closex(gpointer data)
 /* camerawindow_on_contents */
 static void _camerawindow_on_contents(gpointer data)
 {
-	desktop_help_contents(PACKAGE, "camera");
+	desktop_help_contents(PACKAGE, PROGNAME);
 }
 
 
