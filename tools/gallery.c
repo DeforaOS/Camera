@@ -24,6 +24,11 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
+/* constants */
+#ifndef PROGNAME
+# define PROGNAME	"gallery"
+#endif
+
 
 /* Gallery */
 /* private */
@@ -35,7 +40,7 @@ static int _gallery(void);
 /* gallery */
 static int _gallery(void)
 {
-	char const gallery[] = "gallery";
+	char const gallery[] = PROGNAME;
 	char const * homedir;
 	char const dcim[] = "DCIM";
 	char * path;
@@ -68,7 +73,7 @@ static int _gallery(void)
 /* usage */
 static int _usage(void)
 {
-	fputs("Usage: gallery\n", stderr);
+	fprintf(stderr, "Usage: %s\n", PROGNAME);
 	return 1;
 }
 
