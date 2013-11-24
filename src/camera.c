@@ -255,6 +255,7 @@ void camera_delete(Camera * camera)
 
 
 /* accessors */
+/* camera_get_widget */
 GtkWidget * camera_get_widget(Camera * camera)
 {
 	return camera->widget;

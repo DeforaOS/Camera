@@ -21,6 +21,7 @@
 #include <libintl.h>
 #include <gtk/gtk.h>
 #include <System.h>
+#include "camera.h"
 #include "window.h"
 #include "../config.h"
 #define _(string) gettext(string)
@@ -43,17 +44,22 @@
 
 /* private */
 /* prototypes */
-static int _camera(char const * device, char const * overlay);
+static int _camera(int embedded, char const * device, char const * overlay);
 
 static int _usage(void);
 
 
 /* functions */
 /* camera */
-static int _camera(char const * device, char const * overlay)
+static int _camera_embedded(char const * device, char const * overlay);
+static void _embedded_on_embedded(gpointer data);
+
+static int _camera(int embedded, char const * device, char const * overlay)
 {
 	CameraWindow * camera;
 
+	if(embedded != 0)
+		return _camera_embedded(device, overlay);
 	if((camera = camerawindow_new(device)) == NULL)
 		return error_print(PACKAGE);
 	if(overlay != NULL)
@@ -63,13 +69,50 @@ static int _camera(char const * device, char const * overlay)
 	return 0;
 }
 
+static int _camera_embedded(char const * device, char const * overlay)
+{
+	GtkWidget * window;
+	GtkWidget * widget;
+	Camera * camera;
+	unsigned long id;
+
+	window = gtk_plug_new(0);
+	gtk_widget_realize(window);
+	g_signal_connect_swapped(window, "embedded", G_CALLBACK(
+				_embedded_on_embedded), window);
+	if((camera = camera_new(window, NULL, device)) == NULL)
+	{
+		gtk_widget_destroy(window);
+		return -1;
+	}
+	if(overlay != NULL)
+		camera_add_overlay(camera, overlay, 50);
+	widget = camera_get_widget(camera);
+	gtk_container_add(GTK_CONTAINER(window), widget);
+	id = gtk_plug_get_id(GTK_PLUG(window));
+	printf("%lu\n", id);
+	fclose(stdout);
+	gtk_main();
+	camera_delete(camera);
+	gtk_widget_destroy(window);
+	return 0;
+}
+
+static void _embedded_on_embedded(gpointer data)
+{
+	GtkWidget * widget = data;
+
+	gtk_widget_show(widget);
+}
+
 
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s [-d device][-O filename]\n"
+	fprintf(stderr, _("Usage: %s [-d device][-O filename][-x]\n"
 "  -d	Video device to open\n"
-"  -O	Use this file as an overlay\n"), PROGNAME);
+"  -O	Use this file as an overlay\n"
+"  -x	Start in embedded mode\n"), PROGNAME);
 	return 1;
 }
 
@@ -80,6 +123,7 @@ static int _usage(void)
 int main(int argc, char * argv[])
 {
 	int o;
+	int embedded = 0;
 	char const * device = NULL;
 	char const * overlay = NULL;
 
@@ -87,7 +131,7 @@ int main(int argc, char * argv[])
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "d:O:")) != -1)
+	while((o = getopt(argc, argv, "d:O:x")) != -1)
 		switch(o)
 		{
 			case 'd':
@@ -96,10 +140,13 @@ int main(int argc, char * argv[])
 			case 'O':
 				overlay = optarg;
 				break;
+			case 'x':
+				embedded = 1;
+				break;
 			default:
 				return _usage();
 		}
 	if(optind != argc)
 		return _usage();
-	return (_camera(device, overlay) == 0) ? 0 : 2;
+	return (_camera(embedded, device, overlay) == 0) ? 0 : 2;
 }
