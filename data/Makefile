@@ -13,12 +13,12 @@ distclean: clean
 
 install:
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 camera.desktop $(DESTDIR)$(PREFIX)/share/applications/camera.desktop
+	$(INSTALL) -m 0644 deforaos-camera.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-camera.desktop
 	$(MKDIR) $(DESTDIR)$(PREFIX)/share/applications
-	$(INSTALL) -m 0644 gallery.desktop $(DESTDIR)$(PREFIX)/share/applications/gallery.desktop
+	$(INSTALL) -m 0644 deforaos-gallery.desktop $(DESTDIR)$(PREFIX)/share/applications/deforaos-gallery.desktop
 
 uninstall:
-	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/camera.desktop
-	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/gallery.desktop
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/deforaos-camera.desktop
+	$(RM) -- $(DESTDIR)$(PREFIX)/share/applications/deforaos-gallery.desktop
 
 .PHONY: all clean distclean install uninstall

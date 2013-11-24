@@ -22,8 +22,8 @@ dist:
 	$(LN) -s -- . $(PACKAGE)-$(VERSION)
 	@$(TAR) $(PACKAGE)-$(VERSION).tar.gz -- \
 		$(PACKAGE)-$(VERSION)/data/Makefile \
-		$(PACKAGE)-$(VERSION)/data/camera.desktop \
-		$(PACKAGE)-$(VERSION)/data/gallery.desktop \
+		$(PACKAGE)-$(VERSION)/data/deforaos-camera.desktop \
+		$(PACKAGE)-$(VERSION)/data/deforaos-gallery.desktop \
 		$(PACKAGE)-$(VERSION)/data/project.conf \
 		$(PACKAGE)-$(VERSION)/doc/Makefile \
 		$(PACKAGE)-$(VERSION)/doc/docbook.sh \
