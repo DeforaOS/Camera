@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Gallery
 Comment=Picture gallery
+TryExec=gallery
 Exec=gallery
 Icon=image-x-generic
 Type=Application

@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Camera
 Comment=Take pictures using a camera
+TryExec=camera
 Exec=camera
 Icon=camera-photo
 Type=Application
