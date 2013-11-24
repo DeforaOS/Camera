@@ -24,7 +24,7 @@ gallery_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 gallery: $(gallery_OBJS)
 	$(CC) -o gallery $(gallery_OBJS) $(gallery_LDFLAGS)
 
-gallery.o: gallery.c
+gallery.o: gallery.c ../config.h
 	$(CC) $(gallery_CFLAGS) -c gallery.c
 
 clean:
