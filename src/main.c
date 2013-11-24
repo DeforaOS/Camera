@@ -27,6 +27,9 @@
 
 
 /* constants */
+#ifndef PROGNAME
+# define PROGNAME	"camera"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -64,9 +67,9 @@ static int _camera(char const * device, char const * overlay)
 /* usage */
 static int _usage(void)
 {
-	fputs(_("Usage: camera [-d device][-O filename]\n"
+	fprintf(stderr, _("Usage: %s [-d device][-O filename]\n"
 "  -d	Video device to open\n"
-"  -O	Use this file as an overlay\n"), stderr);
+"  -O	Use this file as an overlay\n"), PROGNAME);
 	return 1;
 }
 
