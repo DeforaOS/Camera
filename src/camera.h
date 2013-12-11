@@ -34,7 +34,7 @@ typedef enum _CameraSnapshotFormat
 
 /* functions */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device);
+		char const * device, int flip);
 void camera_delete(Camera * camera);
 
 /* accessors */

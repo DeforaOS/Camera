@@ -57,6 +57,7 @@ static char const _license[] =
 struct _Camera
 {
 	String * device;
+	gboolean flip;
 
 	guint source;
 	int fd;
@@ -143,7 +144,7 @@ static DesktopToolbar _camera_toolbar[] =
 /* functions */
 /* camera_new */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device)
+		char const * device, int flip)
 {
 	Camera * camera;
 	GtkWidget * vbox;
@@ -154,6 +155,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	if(device == NULL)
 		device = "/dev/video0";
 	camera->device = string_new(device);
+	camera->flip = flip ? TRUE : FALSE;
 	camera->source = 0;
 	camera->fd = -1;
 	memset(&camera->cap, 0, sizeof(camera->cap));
@@ -863,7 +865,9 @@ static gboolean _camera_on_refresh(gpointer data)
 			camera->format.fmt.pix.pixelformat);
 #endif
 	_refresh_convert(camera);
-	if(width == allocation->width && height == allocation->height
+	if(camera->flip == FALSE
+			&& width == allocation->width
+			&& height == allocation->height
 			&& camera->overlays_cnt == 0)
 		/* render directly */
 		gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0,
@@ -875,6 +879,12 @@ static gboolean _camera_on_refresh(gpointer data)
 		pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
 				width * 3, NULL, NULL);
+		if(camera->flip)
+		{
+			pixbuf2 = gdk_pixbuf_flip(pixbuf, TRUE);
+			g_object_unref(pixbuf);
+			pixbuf = pixbuf2;
+		}
 		pixbuf2 = gdk_pixbuf_scale_simple(pixbuf, allocation->width,
 				allocation->height, GDK_INTERP_BILINEAR);
 		_refresh_overlays(camera, pixbuf2);

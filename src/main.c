@@ -44,23 +44,26 @@
 
 /* private */
 /* prototypes */
-static int _camera(int embedded, char const * device, char const * overlay);
+static int _camera(int embedded, char const * device, int flip,
+		char const * overlay);
 
 static int _usage(void);
 
 
 /* functions */
 /* camera */
-static int _camera_embedded(char const * device, char const * overlay);
+static int _camera_embedded(char const * device, int flip,
+		char const * overlay);
 static void _embedded_on_embedded(gpointer data);
 
-static int _camera(int embedded, char const * device, char const * overlay)
+static int _camera(int embedded, char const * device, int flip,
+		char const * overlay)
 {
 	CameraWindow * camera;
 
 	if(embedded != 0)
-		return _camera_embedded(device, overlay);
-	if((camera = camerawindow_new(device)) == NULL)
+		return _camera_embedded(device, flip, overlay);
+	if((camera = camerawindow_new(device, flip)) == NULL)
 		return error_print(PACKAGE);
 	if(overlay != NULL)
 		camerawindow_add_overlay(camera, overlay, 50);
@@ -69,7 +72,7 @@ static int _camera(int embedded, char const * device, char const * overlay)
 	return 0;
 }
 
-static int _camera_embedded(char const * device, char const * overlay)
+static int _camera_embedded(char const * device, int flip, char const * overlay)
 {
 	GtkWidget * window;
 	GtkWidget * widget;
@@ -80,7 +83,7 @@ static int _camera_embedded(char const * device, char const * overlay)
 	gtk_widget_realize(window);
 	g_signal_connect_swapped(window, "embedded", G_CALLBACK(
 				_embedded_on_embedded), window);
-	if((camera = camera_new(window, NULL, device)) == NULL)
+	if((camera = camera_new(window, NULL, device, flip)) == NULL)
 	{
 		gtk_widget_destroy(window);
 		return -1;
@@ -109,8 +112,9 @@ static void _embedded_on_embedded(gpointer data)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s [-d device][-O filename][-x]\n"
+	fprintf(stderr, _("Usage: %s [-d device][-O filename][-Hx]\n"
 "  -d	Video device to open\n"
+"  -H	Flip horizontally\n"
 "  -O	Use this file as an overlay\n"
 "  -x	Start in embedded mode\n"), PROGNAME);
 	return 1;
@@ -125,17 +129,21 @@ int main(int argc, char * argv[])
 	int o;
 	int embedded = 0;
 	char const * device = NULL;
+	int flip = 0;
 	char const * overlay = NULL;
 
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "d:O:x")) != -1)
+	while((o = getopt(argc, argv, "d:HO:x")) != -1)
 		switch(o)
 		{
 			case 'd':
 				device = optarg;
+				break;
+			case 'H':
+				flip = 1;
 				break;
 			case 'O':
 				overlay = optarg;
@@ -148,5 +156,5 @@ int main(int argc, char * argv[])
 		}
 	if(optind != argc)
 		return _usage();
-	return (_camera(embedded, device, overlay) == 0) ? 0 : 2;
+	return (_camera(embedded, device, flip, overlay) == 0) ? 0 : 2;
 }

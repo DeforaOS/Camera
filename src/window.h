@@ -27,7 +27,7 @@ typedef struct _CameraWindow CameraWindow;
 
 
 /* functions */
-CameraWindow * camerawindow_new(char const * device);
+CameraWindow * camerawindow_new(char const * device, int flip);
 void camerawindow_delete(CameraWindow * camera);
 
 /* useful */
