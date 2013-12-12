@@ -439,7 +439,7 @@ static void _preferences_window(Camera * camera)
 #else
 	widget = gtk_hbox_new(FALSE, 4);
 #endif
-	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Interpolation:")),
+	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Interpolation: ")),
 			FALSE, TRUE, 0);
 	store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_STRING);
 	for(i = 0; i < sizeof(interp) / sizeof(*interp); i++)
