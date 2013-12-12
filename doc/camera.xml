@@ -60,7 +60,9 @@
 	<refsect1 id="description">
 		<title>Description</title>
 		<para><command>&name;</command> is a webcam application, with the ability to
-			take pictures.</para>
+			take pictures. It also supports image flipping (horizontal and vertical)
+			and choosing alternative scaling algorithms (via the preferences
+			window).</para>
 	</refsect1>
 	<refsect1 id="options">
 		<title>Options</title>
