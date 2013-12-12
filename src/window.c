@@ -55,6 +55,8 @@ static void _camerawindow_on_close(gpointer data);
 static gboolean _camerawindow_on_closex(gpointer data);
 static void _camerawindow_on_contents(gpointer data);
 static void _camerawindow_on_fullscreen(gpointer data);
+static gboolean _camerawindow_on_window_state(GtkWidget * widget,
+		GdkEvent * event, gpointer data);
 
 #ifndef EMBEDDED
 /* menus */
@@ -78,15 +80,15 @@ static char const * _authors[] =
 };
 #endif
 
-#ifdef EMBEDDED
 static const DesktopAccel _camerawindow_accel[] =
 {
+#ifdef EMBEDDED
 	{ G_CALLBACK(_camerawindow_on_close), GDK_CONTROL_MASK, GDK_KEY_W },
 	{ G_CALLBACK(_camerawindow_on_contents), 0, GDK_KEY_F1 },
+#endif
 	{ G_CALLBACK(_camerawindow_on_fullscreen), 0, GDK_KEY_F11 },
 	{ NULL, 0, 0 }
 };
-#endif
 
 #ifndef EMBEDDED
 /* menus */
@@ -117,9 +119,9 @@ static const DesktopMenu _camerawindow_menu_view[] =
 {
 	{ N_("_Fullscreen"), G_CALLBACK(_camerawindow_on_view_fullscreen),
 #if GTK_CHECK_VERSION(2, 8, 0)
-		GTK_STOCK_FULLSCREEN, 0, GDK_KEY_F11 },
+		GTK_STOCK_FULLSCREEN, 0, 0 },
 #else
-		NULL, 0, GDK_KEY_F11 },
+		NULL, 0, 0 },
 #endif
 	{ NULL, NULL, NULL, 0, 0 }
 };
@@ -183,14 +185,14 @@ CameraWindow * camerawindow_new(char const * device, int hflip)
 	gtk_window_set_title(GTK_WINDOW(camera->window), "Camera");
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camerawindow_on_closex), camera);
+	g_signal_connect(camera->window, "window-state-event", G_CALLBACK(
+				_camerawindow_on_window_state), camera);
 #if GTK_CHECK_VERSION(3, 0, 0)
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 #else
 	vbox = gtk_vbox_new(FALSE, 0);
 #endif
-#ifdef EMBEDDED
 	desktop_accel_create(_camerawindow_accel, camera, group);
-#endif
 #ifndef EMBEDDED
 	/* menubar */
 	camera->menubar = desktop_menubar_create(_camerawindow_menubar, camera,
@@ -221,15 +223,9 @@ void camerawindow_delete(CameraWindow * camera)
 void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen)
 {
 	if(fullscreen)
-	{
-		gtk_widget_hide(camera->menubar);
 		gtk_window_fullscreen(GTK_WINDOW(camera->window));
-	}
 	else
-	{
 		gtk_window_unfullscreen(GTK_WINDOW(camera->window));
-		gtk_widget_show(camera->menubar);
-	}
 	camera->fullscreen = fullscreen;
 }
 
@@ -278,6 +274,27 @@ static void _camerawindow_on_fullscreen(gpointer data)
 	CameraWindow * camera = data;
 
 	camerawindow_set_fullscreen(camera, !camera->fullscreen);
+}
+
+
+/* camerawindow_on_window_state */
+static gboolean _camerawindow_on_window_state(GtkWidget * widget,
+		GdkEvent * event, gpointer data)
+{
+	CameraWindow * camera = data;
+	GdkEventWindowState * gews;
+
+	if(event->type == GDK_WINDOW_STATE)
+	{
+		gews = &event->window_state;
+		camera->fullscreen = (gews->new_window_state
+				& GDK_WINDOW_STATE_FULLSCREEN) ? 1 : 0;
+		if(camera->fullscreen)
+			gtk_widget_hide(camera->menubar);
+		else
+			gtk_widget_show(camera->menubar);
+	}
+	return FALSE;
 }
 
 

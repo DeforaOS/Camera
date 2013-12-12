@@ -129,6 +129,7 @@ static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
+static void _camera_on_fullscreen(gpointer data);
 static void _camera_on_gallery(gpointer data);
 static gboolean _camera_on_open(gpointer data);
 #ifdef EMBEDDED
@@ -159,6 +160,7 @@ static DesktopToolbar _camera_toolbar[] =
 	{ N_("Properties"), G_CALLBACK(_camera_on_properties),
 		GTK_STOCK_PROPERTIES, 0, 0, NULL },
 #endif
+	{ "", NULL, NULL, 0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
 
@@ -172,6 +174,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	Camera * camera;
 	GtkWidget * vbox;
 	GtkWidget * widget;
+	GtkToolItem * toolitem;
 
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
@@ -219,9 +222,12 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	/* toolbar */
 	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), FALSE);
-#ifdef EMBEDDED
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), FALSE);
-#endif
+	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[4].widget), FALSE);
+	toolitem = gtk_tool_button_new_from_stock(GTK_STOCK_FULLSCREEN);
+	g_signal_connect_swapped(toolitem, "clicked", G_CALLBACK(
+				_camera_on_fullscreen), camera);
+	gtk_toolbar_insert(GTK_TOOLBAR(widget), toolitem, -1);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 #if GTK_CHECK_VERSION(2, 18, 0)
 	/* infobar */
@@ -884,10 +890,10 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 		g_error_free(error);
 		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget),
 				FALSE);
-#ifdef EMBEDDED
 		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget),
 				FALSE);
-#endif
+		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[4].widget),
+				FALSE);
 		camera->source = 0;
 		return FALSE;
 	}
@@ -940,6 +946,26 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 }
 
 
+/* camera_on_fullscreen */
+static void _camera_on_fullscreen(gpointer data)
+{
+	Camera * camera = data;
+	GdkWindow * window;
+	GdkWindowState state;
+
+#if GTK_CHECK_VERSION(2, 14, 0)
+	window = gtk_widget_get_window(camera->window);
+#else
+	window = camera->window->window;
+#endif
+	state = gdk_window_get_state(window);
+	if(state & GDK_WINDOW_STATE_FULLSCREEN)
+		gtk_window_unfullscreen(GTK_WINDOW(camera->window));
+	else
+		gtk_window_fullscreen(GTK_WINDOW(camera->window));
+}
+
+
 /* camera_on_gallery */
 static void _camera_on_gallery(gpointer data)
 {
@@ -981,9 +1007,8 @@ static gboolean _camera_on_open(gpointer data)
 			camera->format.fmt.pix.height);
 #endif
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), TRUE);
-#ifdef EMBEDDED
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), TRUE);
-#endif
+	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[4].widget), TRUE);
 	/* FIXME allow the window to be smaller */
 	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
