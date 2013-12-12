@@ -969,6 +969,7 @@ static gboolean _camera_on_open(gpointer data)
 #ifdef EMBEDDED
 	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), TRUE);
 #endif
+	/* FIXME allow the window to be smaller */
 	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
 	return FALSE;
@@ -1069,7 +1070,10 @@ static void _camera_on_properties(gpointer data)
 static void _refresh_convert(Camera * camera);
 static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 		uint8_t * r, uint8_t * g, uint8_t * b);
+static void _refresh_hflip(Camera * camera, GdkPixbuf ** pixbuf);
 static void _refresh_overlays(Camera * camera, GdkPixbuf * pixbuf);
+static void _refresh_scale(Camera * camera, GdkPixbuf ** pixbuf);
+static void _refresh_vflip(Camera * camera, GdkPixbuf ** pixbuf);
 
 static gboolean _camera_on_refresh(gpointer data)
 {
@@ -1078,7 +1082,6 @@ static gboolean _camera_on_refresh(gpointer data)
 	int width = camera->format.fmt.pix.width;
 	int height = camera->format.fmt.pix.height;
 	GdkPixbuf * pixbuf;
-	GdkPixbuf * pixbuf2;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() 0x%x\n", __func__,
@@ -1100,27 +1103,13 @@ static gboolean _camera_on_refresh(gpointer data)
 		pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
 				width * 3, NULL, NULL);
-		if(camera->hflip)
-		{
-			/* XXX could probably be more efficient */
-			pixbuf2 = gdk_pixbuf_flip(pixbuf, TRUE);
-			g_object_unref(pixbuf);
-			pixbuf = pixbuf2;
-		}
-		if(camera->vflip)
-		{
-			/* XXX could probably be more efficient */
-			pixbuf2 = gdk_pixbuf_flip(pixbuf, FALSE);
-			g_object_unref(pixbuf);
-			pixbuf = pixbuf2;
-		}
-		pixbuf2 = gdk_pixbuf_scale_simple(pixbuf, allocation->width,
-				allocation->height, camera->interp);
-		_refresh_overlays(camera, pixbuf2);
-		gdk_pixbuf_render_to_drawable(pixbuf2, camera->pixmap,
+		_refresh_hflip(camera, &pixbuf);
+		_refresh_vflip(camera, &pixbuf);
+		_refresh_scale(camera, &pixbuf);
+		_refresh_overlays(camera, pixbuf);
+		gdk_pixbuf_render_to_drawable(pixbuf, camera->pixmap,
 				camera->gc, 0, 0, 0, 0, -1, -1,
 				GDK_RGB_DITHER_NORMAL, 0, 0);
-		g_object_unref(pixbuf2);
 		g_object_unref(pixbuf);
 	}
 	/* force a refresh */
@@ -1185,12 +1174,48 @@ static void _refresh_convert_yuv(int amp, uint8_t y, uint8_t u, uint8_t v,
 	*b = (db < 0) ? 0 : ((db > 255) ? 255 : db);
 }
 
+static void _refresh_hflip(Camera * camera, GdkPixbuf ** pixbuf)
+{
+	GdkPixbuf * pixbuf2;
+
+	if(camera->hflip == FALSE)
+		return;
+	/* XXX could probably be more efficient */
+	pixbuf2 = gdk_pixbuf_flip(*pixbuf, TRUE);
+	g_object_unref(*pixbuf);
+	*pixbuf = pixbuf2;
+}
+
 static void _refresh_overlays(Camera * camera, GdkPixbuf * pixbuf)
 {
 	size_t i;
 
 	for(i = 0; i < camera->overlays_cnt; i++)
 		cameraoverlay_blit(camera->overlays[i], pixbuf);
+}
+
+static void _refresh_scale(Camera * camera, GdkPixbuf ** pixbuf)
+{
+	GtkAllocation * allocation = &camera->area_allocation;
+	GdkPixbuf * pixbuf2;
+
+	/* FIXME make stretching optional */
+	pixbuf2 = gdk_pixbuf_scale_simple(*pixbuf, allocation->width,
+			allocation->height, camera->interp);
+	g_object_unref(*pixbuf);
+	*pixbuf = pixbuf2;
+}
+
+static void _refresh_vflip(Camera * camera, GdkPixbuf ** pixbuf)
+{
+	GdkPixbuf * pixbuf2;
+
+	if(camera->vflip == FALSE)
+		return;
+	/* XXX could probably be more efficient */
+	pixbuf2 = gdk_pixbuf_flip(*pixbuf, FALSE);
+	g_object_unref(*pixbuf);
+	*pixbuf = pixbuf2;
 }
 
 
