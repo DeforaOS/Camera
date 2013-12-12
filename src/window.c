@@ -112,8 +112,12 @@ static const DesktopMenu _camerawindow_menu_help[] =
 {
 	{ N_("_Contents"), G_CALLBACK(_camerawindow_on_help_contents),
 		"help-contents", 0, GDK_KEY_F1 },
+#if GTK_CHECK_VERSION(2, 6, 0)
 	{ N_("_About"), G_CALLBACK(_camerawindow_on_help_about),
 		GTK_STOCK_ABOUT, 0, 0 },
+#else
+	{ N_("_About"), G_CALLBACK(_camerawindow_on_help_about), NULL, 0, 0 },
+#endif
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
