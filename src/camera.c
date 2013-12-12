@@ -60,7 +60,8 @@ static char const _license[] =
 struct _Camera
 {
 	String * device;
-	gboolean flip;
+	gboolean hflip;
+	gboolean vflip;
 
 	guint source;
 	int fd;
@@ -99,6 +100,8 @@ struct _Camera
 	GdkPixmap * pixmap;
 	/* preferences */
 	GtkWidget * pr_window;
+	GtkWidget * pr_hflip;
+	GtkWidget * pr_vflip;
 	/* properties */
 	GtkWidget * pp_window;
 };
@@ -155,7 +158,7 @@ static DesktopToolbar _camera_toolbar[] =
 /* functions */
 /* camera_new */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device, int flip)
+		char const * device, int hflip)
 {
 	Camera * camera;
 	GtkWidget * vbox;
@@ -166,7 +169,8 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	if(device == NULL)
 		device = "/dev/video0";
 	camera->device = string_new(device);
-	camera->flip = flip ? TRUE : FALSE;
+	camera->hflip = hflip ? TRUE : FALSE;
+	camera->vflip = FALSE; /* FIXME implement */
 	camera->source = 0;
 	camera->fd = -1;
 	memset(&camera->cap, 0, sizeof(camera->cap));
@@ -316,9 +320,95 @@ void camera_open_gallery(Camera * camera)
 
 
 /* camera_show_preferences */
+static void _preferences_apply(Camera * camera);
+static void _preferences_cancel(Camera * camera);
+static void _preferences_save(Camera * camera);
+static void _preferences_window(Camera * camera);
+/* callbacks */
+static void _preferences_on_response(GtkWidget * widget, gint arg1,
+		gpointer data);
+
 void camera_show_preferences(Camera * camera, gboolean show)
 {
+	if(camera->pr_window == NULL)
+		_preferences_window(camera);
+	if(show)
+		gtk_window_present(GTK_WINDOW(camera->pr_window));
+	else
+		gtk_widget_hide(camera->pr_window);
+}
+
+static void _preferences_apply(Camera * camera)
+{
+	camera->hflip = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+				camera->pr_hflip));
+	camera->vflip = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+				camera->pr_vflip));
+}
+
+static void _preferences_cancel(Camera * camera)
+{
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_hflip),
+			camera->hflip);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_vflip),
+			camera->vflip);
+}
+
+static void _preferences_save(Camera * camera)
+{
 	/* FIXME implement */
+}
+
+static void _preferences_window(Camera * camera)
+{
+	GtkWidget * dialog;
+	GtkWidget * vbox;
+
+	dialog = gtk_dialog_new_with_buttons(_("Preferences"),
+			GTK_WINDOW(camera->window),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_APPLY, GTK_RESPONSE_APPLY,
+			GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+	camera->pr_window = dialog;
+	g_signal_connect(dialog, "response", G_CALLBACK(
+				_preferences_on_response), camera);
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = dialog->vbox;
+#endif
+	camera->pr_hflip = gtk_check_button_new_with_mnemonic(
+			_("Flip _horizontally"));
+	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_hflip, FALSE, TRUE, 0);
+	camera->pr_vflip = gtk_check_button_new_with_mnemonic(
+			_("Flip _vertically"));
+	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_vflip, FALSE, TRUE, 0);
+	gtk_widget_show_all(vbox);
+	_preferences_cancel(camera);
+}
+
+static void _preferences_on_response(GtkWidget * widget, gint arg1,
+		gpointer data)
+{
+	Camera * camera = data;
+
+	switch(arg1)
+	{
+		case GTK_RESPONSE_APPLY:
+			_preferences_apply(camera);
+			break;
+		case GTK_RESPONSE_OK:
+			gtk_widget_hide(widget);
+			_preferences_apply(camera);
+			_preferences_save(camera);
+			break;
+		case GTK_RESPONSE_CANCEL:
+		default:
+			gtk_widget_hide(widget);
+			_preferences_cancel(camera);
+			break;
+	}
 }
 
 
@@ -920,7 +1010,8 @@ static gboolean _camera_on_refresh(gpointer data)
 			camera->format.fmt.pix.pixelformat);
 #endif
 	_refresh_convert(camera);
-	if(camera->flip == FALSE
+	if(camera->hflip == FALSE
+			&& camera->vflip == FALSE
 			&& width == allocation->width
 			&& height == allocation->height
 			&& camera->overlays_cnt == 0)
@@ -934,9 +1025,17 @@ static gboolean _camera_on_refresh(gpointer data)
 		pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
 				width * 3, NULL, NULL);
-		if(camera->flip)
+		if(camera->hflip)
 		{
+			/* XXX could probably be more efficient */
 			pixbuf2 = gdk_pixbuf_flip(pixbuf, TRUE);
+			g_object_unref(pixbuf);
+			pixbuf = pixbuf2;
+		}
+		if(camera->vflip)
+		{
+			/* XXX could probably be more efficient */
+			pixbuf2 = gdk_pixbuf_flip(pixbuf, FALSE);
 			g_object_unref(pixbuf);
 			pixbuf = pixbuf2;
 		}

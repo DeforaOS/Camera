@@ -134,7 +134,7 @@ static const DesktopMenubar _camerawindow_menubar[] =
 /* public */
 /* functions */
 /* camerawindow_new */
-CameraWindow * camerawindow_new(char const * device, int flip)
+CameraWindow * camerawindow_new(char const * device, int hflip)
 {
 	CameraWindow * camera;
 	GtkAccelGroup * group;
@@ -150,7 +150,7 @@ CameraWindow * camerawindow_new(char const * device, int flip)
 	{
 		gtk_widget_realize(camera->window);
 		camera->camera = camera_new(camera->window, group, device,
-				flip);
+				hflip);
 	}
 	if(camera->camera == NULL)
 	{

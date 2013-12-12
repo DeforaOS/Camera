@@ -44,7 +44,7 @@
 
 /* private */
 /* prototypes */
-static int _camera(int embedded, char const * device, int flip,
+static int _camera(int embedded, char const * device, int hflip,
 		char const * overlay);
 
 static int _usage(void);
@@ -52,18 +52,18 @@ static int _usage(void);
 
 /* functions */
 /* camera */
-static int _camera_embedded(char const * device, int flip,
+static int _camera_embedded(char const * device, int hflip,
 		char const * overlay);
 static void _embedded_on_embedded(gpointer data);
 
-static int _camera(int embedded, char const * device, int flip,
+static int _camera(int embedded, char const * device, int hflip,
 		char const * overlay)
 {
 	CameraWindow * camera;
 
 	if(embedded != 0)
-		return _camera_embedded(device, flip, overlay);
-	if((camera = camerawindow_new(device, flip)) == NULL)
+		return _camera_embedded(device, hflip, overlay);
+	if((camera = camerawindow_new(device, hflip)) == NULL)
 		return error_print(PACKAGE);
 	if(overlay != NULL)
 		camerawindow_add_overlay(camera, overlay, 50);
@@ -72,7 +72,8 @@ static int _camera(int embedded, char const * device, int flip,
 	return 0;
 }
 
-static int _camera_embedded(char const * device, int flip, char const * overlay)
+static int _camera_embedded(char const * device, int hflip,
+		char const * overlay)
 {
 	GtkWidget * window;
 	GtkWidget * widget;
@@ -83,7 +84,7 @@ static int _camera_embedded(char const * device, int flip, char const * overlay)
 	gtk_widget_realize(window);
 	g_signal_connect_swapped(window, "embedded", G_CALLBACK(
 				_embedded_on_embedded), window);
-	if((camera = camera_new(window, NULL, device, flip)) == NULL)
+	if((camera = camera_new(window, NULL, device, hflip)) == NULL)
 	{
 		gtk_widget_destroy(window);
 		return -1;
@@ -129,7 +130,7 @@ int main(int argc, char * argv[])
 	int o;
 	int embedded = 0;
 	char const * device = NULL;
-	int flip = 0;
+	int hflip = 0;
 	char const * overlay = NULL;
 
 	setlocale(LC_ALL, "");
@@ -143,7 +144,7 @@ int main(int argc, char * argv[])
 				device = optarg;
 				break;
 			case 'H':
-				flip = 1;
+				hflip = 1;
 				break;
 			case 'O':
 				overlay = optarg;
@@ -156,5 +157,5 @@ int main(int argc, char * argv[])
 		}
 	if(optind != argc)
 		return _usage();
-	return (_camera(embedded, device, flip, overlay) == 0) ? 0 : 2;
+	return (_camera(embedded, device, hflip, overlay) == 0) ? 0 : 2;
 }
