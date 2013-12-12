@@ -45,7 +45,9 @@ struct _CameraWindow
 
 	/* widgets */
 	GtkWidget * window;
+#ifndef EMBEDDED
 	GtkWidget * menubar;
+#endif
 };
 
 
@@ -288,10 +290,12 @@ static gboolean _camerawindow_on_window_state(GtkWidget * widget,
 		gews = &event->window_state;
 		camera->fullscreen = (gews->new_window_state
 				& GDK_WINDOW_STATE_FULLSCREEN) ? 1 : 0;
+#ifndef EMBEDDED
 		if(camera->fullscreen)
 			gtk_widget_hide(camera->menubar);
 		else
 			gtk_widget_show(camera->menubar);
+#endif
 	}
 	return FALSE;
 }
