@@ -54,6 +54,7 @@ struct _CameraWindow
 static void _camerawindow_on_close(gpointer data);
 static gboolean _camerawindow_on_closex(gpointer data);
 static void _camerawindow_on_contents(gpointer data);
+static void _camerawindow_on_fullscreen(gpointer data);
 
 #ifndef EMBEDDED
 /* menus */
@@ -82,6 +83,7 @@ static const DesktopAccel _camerawindow_accel[] =
 {
 	{ G_CALLBACK(_camerawindow_on_close), GDK_CONTROL_MASK, GDK_KEY_W },
 	{ G_CALLBACK(_camerawindow_on_contents), 0, GDK_KEY_F1 },
+	{ G_CALLBACK(_camerawindow_on_fullscreen), 0, GDK_KEY_F11 },
 	{ NULL, 0, 0 }
 };
 #endif
@@ -270,6 +272,15 @@ static void _camerawindow_on_contents(gpointer data)
 }
 
 
+/* camerawindow_on_fullscreen */
+static void _camerawindow_on_fullscreen(gpointer data)
+{
+	CameraWindow * camera = data;
+
+	camerawindow_set_fullscreen(camera, !camera->fullscreen);
+}
+
+
 #ifndef EMBEDDED
 /* menus */
 /* camerawindow_on_file_close */
@@ -322,7 +333,7 @@ static void _camerawindow_on_view_fullscreen(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	camerawindow_set_fullscreen(camera, !camera->fullscreen);
+	_camerawindow_on_fullscreen(camera);
 }
 
 
