@@ -446,7 +446,7 @@ static void _preferences_window(Camera * camera)
 	{
 		gtk_list_store_append(store, &iter);
 		gtk_list_store_set(store, &iter, 0, interp[i].type,
-				1, interp[i].name, -1);
+				1, _(interp[i].name), -1);
 	}
 	camera->pr_interp = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
 	renderer = gtk_cell_renderer_text_new();
