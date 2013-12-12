@@ -127,17 +127,17 @@ static void _camera_on_snapshot(gpointer data);
 /* variables */
 static DesktopToolbar _camera_toolbar[] =
 {
-	{ "Snapshot", G_CALLBACK(_camera_on_snapshot), "camera-photo", 0, 0,
+	{ N_("Snapshot"), G_CALLBACK(_camera_on_snapshot), "camera-photo", 0, 0,
 		NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ "Gallery", G_CALLBACK(_camera_on_gallery), "image-x-generic", 0, 0,
-		NULL },
+	{ N_("Gallery"), G_CALLBACK(_camera_on_gallery), "image-x-generic", 0,
+		0, NULL },
 #ifdef EMBEDDED
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ "Properties", G_CALLBACK(_camera_on_properties),
+	{ N_("Properties"), G_CALLBACK(_camera_on_properties),
 		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ "Preferences", G_CALLBACK(_camera_on_preferences),
+	{ N_("Preferences"), G_CALLBACK(_camera_on_preferences),
 		GTK_STOCK_PREFERENCES, GDK_CONTROL_MASK, GDK_KEY_P, NULL },
 #endif
 	{ NULL, NULL, NULL, 0, 0, NULL }
