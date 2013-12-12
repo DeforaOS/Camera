@@ -43,6 +43,9 @@ static char const _license[] =
 #define N_(string) (string)
 
 /* constants */
+#ifndef PROGNAME
+# define PROGNAME	"camera"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -642,7 +645,7 @@ static int _camera_error(Camera * camera, char const * message, int ret)
 
 static int _error_text(char const * message, int ret)
 {
-	fprintf(stderr, "%s: %s\n", PACKAGE, message);
+	fprintf(stderr, "%s: %s\n", PROGNAME, message);
 	return ret;
 }
 
