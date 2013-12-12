@@ -62,6 +62,7 @@ struct _Camera
 	String * device;
 	gboolean hflip;
 	gboolean vflip;
+	GdkInterpType interp;
 
 	guint source;
 	int fd;
@@ -102,6 +103,7 @@ struct _Camera
 	GtkWidget * pr_window;
 	GtkWidget * pr_hflip;
 	GtkWidget * pr_vflip;
+	GtkWidget * pr_interp;
 	/* properties */
 	GtkWidget * pp_window;
 };
@@ -166,11 +168,13 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
+	/* FIXME implement a preferences file */
 	if(device == NULL)
 		device = "/dev/video0";
 	camera->device = string_new(device);
 	camera->hflip = hflip ? TRUE : FALSE;
-	camera->vflip = FALSE; /* FIXME implement */
+	camera->vflip = FALSE;
+	camera->interp = GDK_INTERP_BILINEAR;
 	camera->source = 0;
 	camera->fd = -1;
 	memset(&camera->cap, 0, sizeof(camera->cap));
@@ -340,18 +344,47 @@ void camera_show_preferences(Camera * camera, gboolean show)
 
 static void _preferences_apply(Camera * camera)
 {
+	GtkTreeModel * model;
+	GtkTreeIter iter;
+
 	camera->hflip = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
 				camera->pr_hflip));
 	camera->vflip = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
 				camera->pr_vflip));
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(camera->pr_interp),
+				&iter) == TRUE)
+	{
+		model = gtk_combo_box_get_model(GTK_COMBO_BOX(
+					camera->pr_interp));
+		gtk_tree_model_get(model, &iter, 0, &camera->interp, -1);
+	}
 }
 
 static void _preferences_cancel(Camera * camera)
 {
+	GtkTreeModel * model;
+	GtkTreeIter iter;
+	gboolean valid;
+	GdkInterpType interp;
+
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_hflip),
 			camera->hflip);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_vflip),
 			camera->vflip);
+	/* interpolation */
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(camera->pr_interp));
+	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
+			valid = gtk_tree_model_iter_next(model, &iter))
+	{
+		gtk_tree_model_get(model, &iter, 0, &interp, -1);
+		if(interp == camera->interp)
+			break;
+	}
+	if(valid)
+		gtk_combo_box_set_active_iter(GTK_COMBO_BOX(camera->pr_interp),
+				&iter);
+	else
+		gtk_combo_box_set_active(GTK_COMBO_BOX(camera->pr_interp), 0);
 }
 
 static void _preferences_save(Camera * camera)
@@ -363,6 +396,21 @@ static void _preferences_window(Camera * camera)
 {
 	GtkWidget * dialog;
 	GtkWidget * vbox;
+	GtkWidget * widget;
+	GtkListStore * store;
+	GtkTreeIter iter;
+	GtkCellRenderer * renderer;
+	const struct {
+		GdkInterpType type;
+		char const * name;
+	} interp[] =
+	{
+		{ GDK_INTERP_NEAREST, N_("Nearest") },
+		{ GDK_INTERP_TILES, N_("Tiles") },
+		{ GDK_INTERP_BILINEAR, N_("Bilinear") },
+		{ GDK_INTERP_HYPER, N_("Hyperbolic") },
+	};
+	size_t i;
 
 	dialog = gtk_dialog_new_with_buttons(_("Preferences"),
 			GTK_WINDOW(camera->window),
@@ -378,12 +426,36 @@ static void _preferences_window(Camera * camera)
 #else
 	vbox = dialog->vbox;
 #endif
+	gtk_box_set_spacing(GTK_BOX(vbox), 4);
 	camera->pr_hflip = gtk_check_button_new_with_mnemonic(
 			_("Flip _horizontally"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_hflip, FALSE, TRUE, 0);
 	camera->pr_vflip = gtk_check_button_new_with_mnemonic(
 			_("Flip _vertically"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_vflip, FALSE, TRUE, 0);
+	/* interpolation */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	widget = gtk_hbox_new(FALSE, 4);
+#endif
+	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Interpolation:")),
+			FALSE, TRUE, 0);
+	store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_STRING);
+	for(i = 0; i < sizeof(interp) / sizeof(*interp); i++)
+	{
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter, 0, interp[i].type,
+				1, interp[i].name, -1);
+	}
+	camera->pr_interp = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(camera->pr_interp), renderer,
+			TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(camera->pr_interp),
+			renderer, "text", 1, NULL);
+	gtk_box_pack_start(GTK_BOX(widget), camera->pr_interp, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	_preferences_cancel(camera);
 }
@@ -402,6 +474,9 @@ static void _preferences_on_response(GtkWidget * widget, gint arg1,
 			gtk_widget_hide(widget);
 			_preferences_apply(camera);
 			_preferences_save(camera);
+			break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			camera->pr_window = NULL;
 			break;
 		case GTK_RESPONSE_CANCEL:
 		default:
@@ -1040,7 +1115,7 @@ static gboolean _camera_on_refresh(gpointer data)
 			pixbuf = pixbuf2;
 		}
 		pixbuf2 = gdk_pixbuf_scale_simple(pixbuf, allocation->width,
-				allocation->height, GDK_INTERP_BILINEAR);
+				allocation->height, camera->interp);
 		_refresh_overlays(camera, pixbuf2);
 		gdk_pixbuf_render_to_drawable(pixbuf2, camera->pixmap,
 				camera->gc, 0, 0, 0, 0, -1, -1,
