@@ -118,8 +118,8 @@ static void _camera_on_gallery(gpointer data);
 static gboolean _camera_on_open(gpointer data);
 #ifdef EMBEDDED
 static void _camera_on_preferences(gpointer data);
-static void _camera_on_properties(gpointer data);
 #endif
+static void _camera_on_properties(gpointer data);
 static gboolean _camera_on_refresh(gpointer data);
 static void _camera_on_snapshot(gpointer data);
 
@@ -139,6 +139,10 @@ static DesktopToolbar _camera_toolbar[] =
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Preferences"), G_CALLBACK(_camera_on_preferences),
 		GTK_STOCK_PREFERENCES, GDK_CONTROL_MASK, GDK_KEY_P, NULL },
+#else
+	{ "", NULL, NULL, 0, 0, NULL },
+	{ N_("Properties"), G_CALLBACK(_camera_on_properties),
+		GTK_STOCK_PROPERTIES, 0, 0, NULL },
 #endif
 	{ NULL, NULL, NULL, 0, 0, NULL }
 };
@@ -871,6 +875,7 @@ static void _camera_on_preferences(gpointer data)
 
 	camera_show_preferences(camera, TRUE);
 }
+#endif
 
 
 /* camera_on_properties */
@@ -878,9 +883,8 @@ static void _camera_on_properties(gpointer data)
 {
 	Camera * camera = data;
 
-	camera_properties(camera);
+	camera_show_properties(camera, TRUE);
 }
-#endif
 
 
 /* camera_on_refresh */
