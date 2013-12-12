@@ -51,6 +51,10 @@
 			<command>&name;</command>
 			<arg choice="opt"><option>-d</option>
 				<replaceable>device</replaceable></arg>
+			<arg choice="opt"><option>-O</option>
+				<replaceable>overlay</replaceable></arg>
+			<arg choice="opt"><option>-H</option></arg>
+			<arg choice="opt"><option>-x</option></arg>
 		</cmdsynopsis>
 	</refsynopsisdiv>
 	<refsect1 id="description">
@@ -66,6 +70,25 @@
 				<term><option>-d</option></term>
 				<listitem>
 					<para>Specify a video device to open.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-H</option></term>
+				<listitem>
+					<para>Force the output to be flipped horizontally.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-O</option></term>
+				<listitem>
+					<para>Specify an image to display on top of the camera feed.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-x</option></term>
+				<listitem>
+					<para>Start the application in embedded mode (for embedding inside other
+						applications).</para>
 				</listitem>
 			</varlistentry>
 		</variablelist>
