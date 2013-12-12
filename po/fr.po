@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camera 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-11-24 03:27+0100\n"
+"POT-Creation-Date: 2013-12-12 03:44+0100\n"
 "PO-Revision-Date: 2013-01-18 22:31+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -16,79 +16,164 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../src/camera.c:336
+#: ../src/camera.c:138
+msgid "Snapshot"
+msgstr "Capture"
+
+#: ../src/camera.c:141
+msgid "Gallery"
+msgstr "Gallerie"
+
+#: ../src/camera.c:145 ../src/camera.c:152 ../src/camera.c:567
+#: ../src/camera.c:578
 msgid "Properties"
 msgstr "Propriétés"
 
-#: ../src/camera.c:349
+#: ../src/camera.c:148 ../src/camera.c:415
+msgid "Preferences"
+msgstr "Préférences"
+
+#: ../src/camera.c:408
+msgid "Nearest"
+msgstr ""
+
+#: ../src/camera.c:409
+msgid "Tiles"
+msgstr ""
+
+#: ../src/camera.c:410
+msgid "Bilinear"
+msgstr "Bilinéaire"
+
+#: ../src/camera.c:411
+msgid "Hyperbolic"
+msgstr "Hyperbolique"
+
+#: ../src/camera.c:431
+msgid "Flip _horizontally"
+msgstr "Retourner l'image _horizontalement"
+
+#: ../src/camera.c:434
+msgid "Flip _vertically"
+msgstr "Retourner l'image _verticalement"
+
+#: ../src/camera.c:442
+msgid "Interpolation:"
+msgstr "Interpolation :"
+
+#: ../src/camera.c:589
 msgid "Driver: "
 msgstr "Pilote : "
 
-#: ../src/camera.c:353
+#: ../src/camera.c:593
 msgid "Card: "
 msgstr "Carte : "
 
-#: ../src/camera.c:357
+#: ../src/camera.c:597
 msgid "Bus info: "
 msgstr "Bus : "
 
-#: ../src/camera.c:361
+#: ../src/camera.c:601
 msgid "Version: "
 msgstr "Version : "
 
-#: ../src/camera.c:374
+#: ../src/camera.c:614
 msgid "Capabilities: "
 msgstr "Capacités : "
 
-#: ../src/camera.c:453 ../src/camera.c:456 ../src/camera.c:476
-#: ../src/camera.c:495 ../src/camera.c:520 ../src/camera.c:538
+#: ../src/camera.c:676 ../src/camera.c:679 ../src/camera.c:699
+#: ../src/camera.c:718 ../src/camera.c:743 ../src/camera.c:761
 msgid "Could not save picture"
 msgstr "Impossible d'enregistrer l'image"
 
-#: ../src/camera.c:540
+#: ../src/camera.c:763
 msgid "Unknown error"
 msgstr "Erreur inconnue"
 
-#: ../src/camera.c:587 ../src/camera.c:591
+#: ../src/camera.c:810 ../src/camera.c:814
 msgid "Error"
 msgstr "Erreur"
 
-#: ../src/camera.c:728
+#: ../src/camera.c:951
 msgid "Could not open the video capture device"
 msgstr "Impossible d'ouvrir le périphérique de capture vidéo"
 
-#: ../src/camera.c:765
+#: ../src/camera.c:988
 msgid "Could not obtain the capabilities"
 msgstr "Impossible d'obtenir les capacités"
 
-#: ../src/camera.c:771
+#: ../src/camera.c:994
 msgid "Unsupported capabilities"
 msgstr "Capacités non supportées"
 
-#: ../src/camera.c:784
+#: ../src/camera.c:1007
 msgid "Cropping not supported"
 msgstr "Recadrage non supporté"
 
-#: ../src/camera.c:789
+#: ../src/camera.c:1012
 msgid "Could not obtain the video capture format"
 msgstr "Impossible d'obtenir le format de capture vidéo"
 
-#: ../src/camera.c:793
+#: ../src/camera.c:1016
 msgid "Unsupported video capture type"
 msgstr "Type de capture vidéo non supporté"
 
-#: ../src/main.c:70
+#: ../src/main.c:116
 #, c-format
 msgid ""
-"Usage: %s [-d device][-O filename]\n"
+"Usage: %s [-d device][-O filename][-Hx]\n"
 "  -d\tVideo device to open\n"
+"  -H\tFlip horizontally\n"
 "  -O\tUse this file as an overlay\n"
+"  -x\tStart in embedded mode\n"
 msgstr ""
 "Usage: %s [-d périphérique]\n"
 "  -d\tPériphérique video à ouvrir\n"
+"  -H\tRetourner l'image horizontalement\n"
 "  -O\tFichier en surimpression\n"
+"  -x\tDémarrer en mode embarqué\n"
 
-#: ../src/window.c:279
+#: ../src/window.c:90
+msgid "Take _snapshot"
+msgstr "_Prendre une photo"
+
+#: ../src/window.c:93
+msgid "_Gallery"
+msgstr "_Gallerie"
+
+#: ../src/window.c:96
+msgid "_Properties"
+msgstr "_Propriétés"
+
+#: ../src/window.c:99
+msgid "_Close"
+msgstr "_Fermer"
+
+#: ../src/window.c:106
+msgid "_Preferences"
+msgstr "_Préférences"
+
+#: ../src/window.c:113
+msgid "_Contents"
+msgstr "_Sommaire"
+
+#: ../src/window.c:116 ../src/window.c:119
+msgid "_About"
+msgstr "À _propos"
+
+#: ../src/window.c:126
+msgid "_File"
+msgstr "_Fichier"
+
+#: ../src/window.c:127
+msgid "_Edit"
+msgstr "É_dition"
+
+#: ../src/window.c:128
+msgid "_Help"
+msgstr "_Aide"
+
+#: ../src/window.c:290
 msgid "Simple camera application for the DeforaOS desktop"
 msgstr "Caméra photo pour l'environnement DeforaOS"
 
