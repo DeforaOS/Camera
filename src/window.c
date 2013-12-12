@@ -226,7 +226,6 @@ void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen)
 		gtk_window_fullscreen(GTK_WINDOW(camera->window));
 	else
 		gtk_window_unfullscreen(GTK_WINDOW(camera->window));
-	camera->fullscreen = fullscreen;
 }
 
 
@@ -273,7 +272,7 @@ static void _camerawindow_on_fullscreen(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	camerawindow_set_fullscreen(camera, !camera->fullscreen);
+	camerawindow_set_fullscreen(camera, camera->fullscreen ? 0 : 1);
 }
 
 
