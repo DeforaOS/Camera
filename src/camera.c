@@ -195,7 +195,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->overlays = NULL;
 	camera->overlays_cnt = 0;
 	camera->widget = NULL;
-	camera->window = NULL;
+	camera->window = window;
 	camera->bold = NULL;
 	camera->gc = NULL;
 	camera->pr_window = NULL;
