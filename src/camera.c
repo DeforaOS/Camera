@@ -395,12 +395,22 @@ static void _properties_window(Camera * camera)
 	unsigned int i;
 	char const * sep = "";
 
-	dialog = gtk_dialog_new_with_buttons(_("Properties"),
-			GTK_WINDOW(camera->window),
+	dialog = gtk_message_dialog_new(GTK_WINDOW(camera->window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+			GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
+#if GTK_CHECK_VERSION(2, 6, 0)
+			"%s", _("Properties"));
+	gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+#endif
+			"");
 	camera->pp_window = dialog;
+#if GTK_CHECK_VERSION(2, 10, 0)
+	gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog),
+			gtk_image_new_from_stock(GTK_STOCK_PROPERTIES,
+				GTK_ICON_SIZE_DIALOG));
+#endif
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 300, 200);
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Properties"));
 	g_signal_connect_swapped(dialog, "response", G_CALLBACK(
 				_properties_on_response), camera);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
