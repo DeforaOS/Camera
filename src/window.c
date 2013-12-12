@@ -41,9 +41,11 @@ static char const _license[] =
 struct _CameraWindow
 {
 	Camera * camera;
+	int fullscreen;
 
 	/* widgets */
 	GtkWidget * window;
+	GtkWidget * menubar;
 };
 
 
@@ -60,6 +62,7 @@ static void _camerawindow_on_file_gallery(gpointer data);
 static void _camerawindow_on_file_properties(gpointer data);
 static void _camerawindow_on_file_snapshot(gpointer data);
 static void _camerawindow_on_edit_preferences(gpointer data);
+static void _camerawindow_on_view_fullscreen(gpointer data);
 static void _camerawindow_on_help_about(gpointer data);
 static void _camerawindow_on_help_contents(gpointer data);
 #endif
@@ -108,6 +111,17 @@ static const DesktopMenu _camerawindow_menu_edit[] =
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
+static const DesktopMenu _camerawindow_menu_view[] =
+{
+	{ N_("_Fullscreen"), G_CALLBACK(_camerawindow_on_view_fullscreen),
+#if GTK_CHECK_VERSION(2, 8, 0)
+		GTK_STOCK_FULLSCREEN, 0, GDK_KEY_F11 },
+#else
+		NULL, 0, GDK_KEY_F11 },
+#endif
+	{ NULL, NULL, NULL, 0, 0 }
+};
+
 static const DesktopMenu _camerawindow_menu_help[] =
 {
 	{ N_("_Contents"), G_CALLBACK(_camerawindow_on_help_contents),
@@ -125,6 +139,7 @@ static const DesktopMenubar _camerawindow_menubar[] =
 {
 	{ N_("_File"), _camerawindow_menu_file },
 	{ N_("_Edit"), _camerawindow_menu_edit },
+	{ N_("_View"), _camerawindow_menu_view },
 	{ N_("_Help"), _camerawindow_menu_help },
 	{ NULL, NULL }
 };
@@ -146,6 +161,7 @@ CameraWindow * camerawindow_new(char const * device, int hflip)
 	group = gtk_accel_group_new();
 	camera->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	camera->camera = NULL;
+	camera->fullscreen = 0;
 	if(camera->window != NULL)
 	{
 		gtk_widget_realize(camera->window);
@@ -175,8 +191,9 @@ CameraWindow * camerawindow_new(char const * device, int hflip)
 #endif
 #ifndef EMBEDDED
 	/* menubar */
-	widget = desktop_menubar_create(_camerawindow_menubar, camera, group);
-	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	camera->menubar = desktop_menubar_create(_camerawindow_menubar, camera,
+			group);
+	gtk_box_pack_start(GTK_BOX(vbox), camera->menubar, FALSE, TRUE, 0);
 #endif
 	widget = camera_get_widget(camera->camera);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, TRUE, TRUE, 0);
@@ -194,6 +211,24 @@ void camerawindow_delete(CameraWindow * camera)
 	if(camera->window != NULL)
 		gtk_widget_destroy(camera->window);
 	object_delete(camera);
+}
+
+
+/* accessors */
+/* camerawindow_set_fullscreen */
+void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen)
+{
+	if(fullscreen)
+	{
+		gtk_widget_hide(camera->menubar);
+		gtk_window_fullscreen(GTK_WINDOW(camera->window));
+	}
+	else
+	{
+		gtk_window_unfullscreen(GTK_WINDOW(camera->window));
+		gtk_widget_show(camera->menubar);
+	}
+	camera->fullscreen = fullscreen;
 }
 
 
@@ -279,6 +314,15 @@ static void _camerawindow_on_edit_preferences(gpointer data)
 	CameraWindow * camera = data;
 
 	camera_show_preferences(camera->camera, TRUE);
+}
+
+
+/* camerawindow_on_view_fullscreen */
+static void _camerawindow_on_view_fullscreen(gpointer data)
+{
+	CameraWindow * camera = data;
+
+	camerawindow_set_fullscreen(camera, !camera->fullscreen);
 }
 
 

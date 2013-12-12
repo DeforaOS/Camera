@@ -30,6 +30,9 @@ typedef struct _CameraWindow CameraWindow;
 CameraWindow * camerawindow_new(char const * device, int hflip);
 void camerawindow_delete(CameraWindow * camera);
 
+/* accessors */
+void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen);
+
 /* useful */
 CameraOverlay * camerawindow_add_overlay(CameraWindow * camera,
 		char const * filename, int opacity);
