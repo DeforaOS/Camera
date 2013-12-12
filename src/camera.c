@@ -53,6 +53,11 @@ static char const _license[] =
 # define BINDIR		PREFIX "/bin"
 #endif
 
+/* macros */
+#ifndef MIN
+# define MIN(a, b)	((a) < (b) ? (a) : (b))
+#endif
+
 
 /* Camera */
 /* private */
@@ -62,6 +67,7 @@ struct _Camera
 	String * device;
 	gboolean hflip;
 	gboolean vflip;
+	gboolean ratio;
 	GdkInterpType interp;
 
 	guint source;
@@ -103,6 +109,7 @@ struct _Camera
 	GtkWidget * pr_window;
 	GtkWidget * pr_hflip;
 	GtkWidget * pr_vflip;
+	GtkWidget * pr_ratio;
 	GtkWidget * pr_interp;
 	/* properties */
 	GtkWidget * pp_window;
@@ -174,6 +181,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->device = string_new(device);
 	camera->hflip = hflip ? TRUE : FALSE;
 	camera->vflip = FALSE;
+	camera->ratio = TRUE;
 	camera->interp = GDK_INTERP_BILINEAR;
 	camera->source = 0;
 	camera->fd = -1;
@@ -351,6 +359,8 @@ static void _preferences_apply(Camera * camera)
 				camera->pr_hflip));
 	camera->vflip = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
 				camera->pr_vflip));
+	camera->ratio = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+				camera->pr_ratio));
 	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(camera->pr_interp),
 				&iter) == TRUE)
 	{
@@ -371,6 +381,8 @@ static void _preferences_cancel(Camera * camera)
 			camera->hflip);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_vflip),
 			camera->vflip);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_ratio),
+			camera->ratio);
 	/* interpolation */
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(camera->pr_interp));
 	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
@@ -433,6 +445,9 @@ static void _preferences_window(Camera * camera)
 	camera->pr_vflip = gtk_check_button_new_with_mnemonic(
 			_("Flip _vertically"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_vflip, FALSE, TRUE, 0);
+	camera->pr_ratio = gtk_check_button_new_with_mnemonic(
+			_("Keep aspect _ratio"));
+	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_ratio, FALSE, TRUE, 0);
 	/* interpolation */
 #if GTK_CHECK_VERSION(3, 0, 0)
 	widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
@@ -1198,10 +1213,36 @@ static void _refresh_scale(Camera * camera, GdkPixbuf ** pixbuf)
 {
 	GtkAllocation * allocation = &camera->area_allocation;
 	GdkPixbuf * pixbuf2;
+	gdouble scale;
+	gint width;
+	gint height;
+	gint x;
+	gint y;
 
-	/* FIXME make stretching optional */
-	pixbuf2 = gdk_pixbuf_scale_simple(*pixbuf, allocation->width,
-			allocation->height, camera->interp);
+	if(camera->ratio == FALSE)
+		pixbuf2 = gdk_pixbuf_scale_simple(*pixbuf, allocation->width,
+				allocation->height, camera->interp);
+	else
+	{
+		if((pixbuf2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8,
+						allocation->width,
+						allocation->height)) == NULL)
+			return;
+		/* XXX could be more efficient */
+		gdk_pixbuf_fill(pixbuf2, 0);
+		scale = (gdouble)allocation->width
+			/ camera->format.fmt.pix.width;
+		scale = MIN(scale, (gdouble)allocation->height
+				/ camera->format.fmt.pix.height);
+		width = (gdouble)camera->format.fmt.pix.width * scale;
+		width = MIN(width, allocation->width);
+		height = (gdouble)camera->format.fmt.pix.height * scale;
+		height = MIN(height, allocation->height);
+		x = (allocation->width - width) / 2;
+		y = (allocation->height - height) / 2;
+		gdk_pixbuf_scale(*pixbuf, pixbuf2, x, y, width, height,
+				0.0, 0.0, scale, scale, camera->interp);
+	}
 	g_object_unref(*pixbuf);
 	*pixbuf = pixbuf2;
 }
