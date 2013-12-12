@@ -94,6 +94,10 @@ struct _Camera
 	GtkWidget * area;
 	GtkAllocation area_allocation;
 	GdkPixmap * pixmap;
+	/* preferences */
+	GtkWidget * pr_window;
+	/* properties */
+	GtkWidget * pp_window;
 };
 
 
@@ -171,6 +175,8 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->window = NULL;
 	camera->bold = NULL;
 	camera->gc = NULL;
+	camera->pr_window = NULL;
+	camera->pp_window = NULL;
 	/* check for errors */
 	if(camera->device == NULL)
 	{
@@ -231,6 +237,10 @@ void camera_delete(Camera * camera)
 	size_t i;
 
 	camera_stop(camera);
+	if(camera->pp_window != NULL)
+		gtk_widget_destroy(camera->pp_window);
+	if(camera->pr_window != NULL)
+		gtk_widget_destroy(camera->pr_window);
 	for(i = 0; i < camera->overlays_cnt; i++)
 		cameraoverlay_delete(camera->overlays[i]);
 	free(camera->overlays);
@@ -308,8 +318,53 @@ void camera_show_preferences(Camera * camera, gboolean show)
 /* camera_show_properties */
 static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 		char const * label, char const * value);
+static void _properties_window(Camera * camera);
+/* callbacks */
+static void _properties_on_response(gpointer data);
 
 void camera_show_properties(Camera * camera, gboolean show)
+{
+	if(camera->rgb_buffer == NULL)
+		/* ignore the action */
+		return;
+	if(show)
+	{
+		if(camera->pp_window == NULL)
+			_properties_window(camera);
+		gtk_window_present(GTK_WINDOW(camera->pp_window));
+	}
+	else
+	{
+		if(camera->pp_window != NULL)
+			gtk_widget_destroy(camera->pp_window);
+		camera->pp_window = NULL;
+	}
+}
+
+static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
+		char const * label, char const * value)
+{
+	GtkWidget * hbox;
+	GtkWidget * widget;
+
+#if GTK_CHECK_VERSION(3, 0, 0)
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	hbox = gtk_hbox_new(FALSE, 4);
+#endif
+	widget = gtk_label_new(label);
+	gtk_widget_modify_font(widget, camera->bold);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_size_group_add_widget(group, widget);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
+	widget = gtk_label_new((value != NULL) ? value : "");
+	gtk_label_set_ellipsize(GTK_LABEL(widget), PANGO_ELLIPSIZE_END);
+	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
+	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
+	return hbox;
+}
+
+static void _properties_window(Camera * camera)
 {
 	GtkWidget * dialog;
 	GtkSizeGroup * group;
@@ -333,14 +388,14 @@ void camera_show_properties(Camera * camera, gboolean show)
 	unsigned int i;
 	char const * sep = "";
 
-	if(camera->rgb_buffer == NULL)
-		/* ignore the action */
-		return;
 	dialog = gtk_dialog_new_with_buttons(_("Properties"),
 			GTK_WINDOW(camera->window),
 			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 			GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE, NULL);
+	camera->pp_window = dialog;
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 300, 200);
+	g_signal_connect_swapped(dialog, "response", G_CALLBACK(
+				_properties_on_response), camera);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 #if GTK_CHECK_VERSION(2, 14, 0)
 	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
@@ -377,31 +432,14 @@ void camera_show_properties(Camera * camera, gboolean show)
 	hbox = _properties_label(camera, group, _("Capabilities: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	gtk_widget_show_all(vbox);
-	gtk_dialog_run(GTK_DIALOG(dialog));
-	gtk_widget_destroy(dialog);
 }
 
-static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
-		char const * label, char const * value)
+static void _properties_on_response(gpointer data)
 {
-	GtkWidget * hbox;
-	GtkWidget * widget;
+	Camera * camera = data;
 
-#if GTK_CHECK_VERSION(3, 0, 0)
-	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
-#endif
-	widget = gtk_label_new(label);
-	gtk_widget_modify_font(widget, camera->bold);
-	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
-	gtk_size_group_add_widget(group, widget);
-	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
-	widget = gtk_label_new((value != NULL) ? value : "");
-	gtk_label_set_ellipsize(GTK_LABEL(widget), PANGO_ELLIPSIZE_END);
-	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
-	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
-	return hbox;
+	gtk_widget_destroy(camera->pp_window);
+	camera->pp_window = NULL;
 }
 
 
