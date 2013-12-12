@@ -298,18 +298,18 @@ void camera_open_gallery(Camera * camera)
 }
 
 
-/* camera_preferences */
-void camera_preferences(Camera * camera)
+/* camera_show_preferences */
+void camera_show_preferences(Camera * camera, gboolean show)
 {
 	/* FIXME implement */
 }
 
 
-/* camera_properties */
+/* camera_show_properties */
 static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 		char const * label, char const * value);
 
-void camera_properties(Camera * camera)
+void camera_show_properties(Camera * camera, gboolean show)
 {
 	GtkWidget * dialog;
 	GtkSizeGroup * group;
@@ -831,7 +831,7 @@ static void _camera_on_preferences(gpointer data)
 {
 	Camera * camera = data;
 
-	camera_preferences(camera);
+	camera_show_preferences(camera, TRUE);
 }
 
 

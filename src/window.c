@@ -255,7 +255,7 @@ static void _camerawindow_on_file_properties(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	camera_properties(camera->camera);
+	camera_show_properties(camera->camera, TRUE);
 }
 
 
@@ -273,7 +273,7 @@ static void _camerawindow_on_edit_preferences(gpointer data)
 {
 	CameraWindow * camera = data;
 
-	camera_preferences(camera->camera);
+	camera_show_preferences(camera->camera, TRUE);
 }
 
 

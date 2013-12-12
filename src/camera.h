@@ -43,9 +43,10 @@ GtkWidget * camera_get_widget(Camera * camera);
 /* useful */
 void camera_open_gallery(Camera * camera);
 
-void camera_preferences(Camera * camera);
-void camera_properties(Camera * camera);
 int camera_snapshot(Camera * camera, CameraSnapshotFormat format);
+
+void camera_show_preferences(Camera * camera, gboolean show);
+void camera_show_properties(Camera * camera, gboolean show);
 
 void camera_start(Camera * camera);
 void camera_stop(Camera * camera);
