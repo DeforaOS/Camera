@@ -35,11 +35,11 @@ msgstr "Préférences"
 
 #: ../src/camera.c:426
 msgid "Nearest"
-msgstr ""
+msgstr "Approximative"
 
 #: ../src/camera.c:427
 msgid "Tiles"
-msgstr ""
+msgstr "Mosaïque"
 
 #: ../src/camera.c:428
 msgid "Bilinear"
