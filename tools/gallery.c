@@ -24,7 +24,7 @@
 #include <libintl.h>
 #include <errno.h>
 #include <glib.h>
-#include <gtk/gtk.h>
+#include <gtk/gtk.h> /* for GTK_CHECK_VERSION */
 #include "../config.h"
 #define _(string) gettext(string)
 
