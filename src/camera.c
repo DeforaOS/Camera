@@ -35,6 +35,9 @@ static char const _license[] =
 #include <errno.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
+#if GTK_CHECK_VERSION(3, 0, 0)
+# include <gtk/gtkx.h>
+#endif
 #include <gdk/gdkkeysyms.h>
 #include <System.h>
 #include <Desktop.h>
