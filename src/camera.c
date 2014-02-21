@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _copyright[] =
-"Copyright © 2012-2013 Pierre Pronchery <khorben@defora.org>";
+"Copyright © 2012-2014 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Camera */
 static char const _license[] =
 "This program is free software: you can redistribute it and/or modify\n"
@@ -1368,6 +1368,13 @@ static void _refresh_scale(Camera * camera, GdkPixbuf ** pixbuf)
 	gint x;
 	gint y;
 
+	if(allocation->width > 0 && allocation->height > 0
+			&& (uint32_t)allocation->width
+			== camera->format.fmt.pix.width
+			&& (uint32_t)allocation->height
+			== camera->format.fmt.pix.height)
+		/* no need to scale anything */
+		return;
 	if(camera->ratio == FALSE)
 		pixbuf2 = gdk_pixbuf_scale_simple(*pixbuf, allocation->width,
 				allocation->height, camera->interp);
@@ -1376,6 +1383,7 @@ static void _refresh_scale(Camera * camera, GdkPixbuf ** pixbuf)
 		if((pixbuf2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8,
 						allocation->width,
 						allocation->height)) == NULL)
+			/* XXX report errors */
 			return;
 		/* XXX could be more efficient */
 		gdk_pixbuf_fill(pixbuf2, 0);
