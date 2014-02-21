@@ -1,5 +1,5 @@
 /* $Id$ */
-/* Copyright (c) 2012-2013 Pierre Pronchery <khorben@defora.org> */
+/* Copyright (c) 2012-2014 Pierre Pronchery <khorben@defora.org> */
 /* This file is part of DeforaOS Desktop Camera */
 /* This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 static int _camera(int embedded, char const * device, int hflip,
 		char const * overlay);
 
+static int _error(char const * message, int ret);
 static int _usage(void);
 
 
@@ -86,6 +87,7 @@ static int _camera_embedded(char const * device, int hflip,
 				_embedded_on_embedded), window);
 	if((camera = camera_new(window, NULL, device, hflip)) == NULL)
 	{
+		error_print(PACKAGE);
 		gtk_widget_destroy(window);
 		return -1;
 	}
@@ -107,6 +109,15 @@ static void _embedded_on_embedded(gpointer data)
 	GtkWidget * widget = data;
 
 	gtk_widget_show(widget);
+}
+
+
+/* error */
+static int _error(char const * message, int ret)
+{
+	fputs(PROGNAME ": ", stderr);
+	perror(message);
+	return ret;
 }
 
 
@@ -133,7 +144,8 @@ int main(int argc, char * argv[])
 	int hflip = 0;
 	char const * overlay = NULL;
 
-	setlocale(LC_ALL, "");
+	if(setlocale(LC_ALL, "") == NULL)
+		_error("setlocale", 1);
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
