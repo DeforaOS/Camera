@@ -28,9 +28,7 @@ static char const _license[] =
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
-#ifdef DEBUG
-# include <stdio.h>
-#endif
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <libintl.h>
