@@ -184,7 +184,7 @@ static DesktopToolbar _camera_toolbar[] =
 /* functions */
 /* camera_new */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device, int hflip)
+		char const * device, int hflip, int vflip)
 {
 	Camera * camera;
 	GtkWidget * vbox;
@@ -198,7 +198,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 		device = "/dev/video0";
 	camera->device = string_new(device);
 	camera->hflip = hflip ? TRUE : FALSE;
-	camera->vflip = FALSE;
+	camera->vflip = vflip ? TRUE : FALSE;
 	camera->ratio = TRUE;
 	camera->interp = GDK_INTERP_BILINEAR;
 	camera->source = 0;

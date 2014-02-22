@@ -1,6 +1,6 @@
 /* $Id$ */
 static char const _copyright[] =
-"Copyright © 2012-2013 Pierre Pronchery <khorben@defora.org>";
+"Copyright © 2012-2014 Pierre Pronchery <khorben@defora.org>";
 /* This file is part of DeforaOS Desktop Camera */
 static char const _license[] =
 "This program is free software: you can redistribute it and/or modify\n"
@@ -155,7 +155,7 @@ static const DesktopMenubar _camerawindow_menubar[] =
 /* public */
 /* functions */
 /* camerawindow_new */
-CameraWindow * camerawindow_new(char const * device, int hflip)
+CameraWindow * camerawindow_new(char const * device, int hflip, int vflip)
 {
 	CameraWindow * camera;
 	GtkAccelGroup * group;
@@ -172,7 +172,7 @@ CameraWindow * camerawindow_new(char const * device, int hflip)
 	{
 		gtk_widget_realize(camera->window);
 		camera->camera = camera_new(camera->window, group, device,
-				hflip);
+				hflip, vflip);
 	}
 	if(camera->camera == NULL)
 	{
