@@ -28,6 +28,7 @@
 		</authorgroup>
 		<copyright>
 			<year>2013</year>
+			<year>2014</year>
 			<holder>&firstname; &surname; &lt;&email;&gt;</holder>
 		</copyright>
 		<legalnotice>
@@ -54,6 +55,9 @@
 			<arg choice="opt"><option>-O</option>
 				<replaceable>overlay</replaceable></arg>
 			<arg choice="opt"><option>-H</option></arg>
+			<arg choice="opt"><option>-h</option></arg>
+			<arg choice="opt"><option>-V</option></arg>
+			<arg choice="opt"><option>-v</option></arg>
 			<arg choice="opt"><option>-x</option></arg>
 		</cmdsynopsis>
 	</refsynopsisdiv>
@@ -81,9 +85,27 @@
 				</listitem>
 			</varlistentry>
 			<varlistentry>
+				<term><option>-h</option></term>
+				<listitem>
+					<para>Force the output not to be flipped horizontally.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
 				<term><option>-O</option></term>
 				<listitem>
 					<para>Specify an image to display on top of the camera feed.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-V</option></term>
+				<listitem>
+					<para>Force the output to be flipped vertically.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-v</option></term>
+				<listitem>
+					<para>Force the output not to be flipped vertically.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
