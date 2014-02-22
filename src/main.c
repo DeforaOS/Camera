@@ -45,7 +45,7 @@
 /* private */
 /* prototypes */
 static int _camera(int embedded, char const * device, int hflip, int vflip,
-		char const * overlay);
+		int ratio, char const * overlay);
 
 static int _error(char const * message, int ret);
 static int _usage(void);
@@ -54,16 +54,16 @@ static int _usage(void);
 /* functions */
 /* camera */
 static int _camera_embedded(char const * device, int hflip, int vflip,
-		char const * overlay);
+		int ratio, char const * overlay);
 static void _embedded_on_embedded(gpointer data);
 
 static int _camera(int embedded, char const * device, int hflip, int vflip,
-		char const * overlay)
+		int ratio, char const * overlay)
 {
 	CameraWindow * camera;
 
 	if(embedded != 0)
-		return _camera_embedded(device, hflip, vflip, overlay);
+		return _camera_embedded(device, hflip, vflip, ratio, overlay);
 	if((camera = camerawindow_new(device)) == NULL)
 		return error_print(PACKAGE);
 	camerawindow_load(camera);
@@ -71,6 +71,8 @@ static int _camera(int embedded, char const * device, int hflip, int vflip,
 		camerawindow_set_hflip(camera, hflip ? TRUE : FALSE);
 	if(vflip >= 0)
 		camerawindow_set_vflip(camera, vflip ? TRUE : FALSE);
+	if(ratio >= 0)
+		camerawindow_set_aspect_ratio(camera, ratio ? TRUE : FALSE);
 	if(overlay != NULL)
 		camerawindow_add_overlay(camera, overlay, 50);
 	gtk_main();
@@ -79,7 +81,7 @@ static int _camera(int embedded, char const * device, int hflip, int vflip,
 }
 
 static int _camera_embedded(char const * device, int hflip, int vflip,
-		char const * overlay)
+		int ratio, char const * overlay)
 {
 	GtkWidget * window;
 	GtkWidget * widget;
@@ -100,6 +102,8 @@ static int _camera_embedded(char const * device, int hflip, int vflip,
 		camera_set_hflip(camera, hflip ? TRUE : FALSE);
 	if(vflip >= 0)
 		camera_set_vflip(camera, vflip ? TRUE : FALSE);
+	if(ratio >= 0)
+		camera_set_aspect_ratio(camera, ratio ? TRUE : FALSE);
 	if(overlay != NULL)
 		camera_add_overlay(camera, overlay, 50);
 	widget = camera_get_widget(camera);
@@ -133,11 +137,13 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s [-d device][-O filename][-HVx]\n"
+	fprintf(stderr, _("Usage: %s [-d device][-O filename][-HhRrVvx]\n"
 "  -d	Video device to open\n"
 "  -H	Flip horizontally\n"
 "  -h	Do not flip horizontally\n"
 "  -O	Use this file as an overlay\n"
+"  -R	Preserve the aspect ratio when scaling\n"
+"  -r	Do not preserve the aspect ratio when scaling\n"
 "  -V	Flip vertically\n"
 "  -v	Do not flip vertically\n"
 "  -x	Start in embedded mode\n"), PROGNAME);
@@ -155,6 +161,7 @@ int main(int argc, char * argv[])
 	char const * device = NULL;
 	int hflip = -1;
 	int vflip = -1;
+	int ratio = -1;
 	char const * overlay = NULL;
 
 	if(setlocale(LC_ALL, "") == NULL)
@@ -162,7 +169,7 @@ int main(int argc, char * argv[])
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "d:HhO:Vvx")) != -1)
+	while((o = getopt(argc, argv, "d:HhO:RrVvx")) != -1)
 		switch(o)
 		{
 			case 'd':
@@ -176,6 +183,12 @@ int main(int argc, char * argv[])
 				break;
 			case 'O':
 				overlay = optarg;
+				break;
+			case 'R':
+				ratio = 1;
+				break;
+			case 'r':
+				ratio = 0;
 				break;
 			case 'V':
 				vflip = 1;
@@ -191,5 +204,6 @@ int main(int argc, char * argv[])
 		}
 	if(optind != argc)
 		return _usage();
-	return (_camera(embedded, device, hflip, vflip, overlay) == 0) ? 0 : 2;
+	return (_camera(embedded, device, hflip, vflip, ratio, overlay) == 0)
+		? 0 : 2;
 }

@@ -56,6 +56,8 @@
 				<replaceable>overlay</replaceable></arg>
 			<arg choice="opt"><option>-H</option></arg>
 			<arg choice="opt"><option>-h</option></arg>
+			<arg choice="opt"><option>-R</option></arg>
+			<arg choice="opt"><option>-r</option></arg>
 			<arg choice="opt"><option>-V</option></arg>
 			<arg choice="opt"><option>-v</option></arg>
 			<arg choice="opt"><option>-x</option></arg>
@@ -94,6 +96,18 @@
 				<term><option>-O</option></term>
 				<listitem>
 					<para>Specify an image to display on top of the camera feed.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-R</option></term>
+				<listitem>
+					<para>Force the output to preserve the aspect ratio when scaling.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term><option>-r</option></term>
+				<listitem>
+					<para>Scale the output without preserving the aspect ratio.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
