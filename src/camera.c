@@ -459,6 +459,8 @@ int camera_save(Camera * camera)
 		/* FIXME also implement interpolation and overlay images */
 		ret = config_save(config, filename);
 	}
+	if(config != NULL)
+		config_delete(config);
 	free(filename);
 	return 0;
 }
