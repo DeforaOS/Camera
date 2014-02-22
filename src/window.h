@@ -27,14 +27,22 @@ typedef struct _CameraWindow CameraWindow;
 
 
 /* functions */
-CameraWindow * camerawindow_new(char const * device, int hflip, int vflip);
+CameraWindow * camerawindow_new(char const * device);
 void camerawindow_delete(CameraWindow * camera);
 
 /* accessors */
+void camerawindow_set_aspect_ratio(CameraWindow * camera, gboolean ratio);
+
 void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen);
+
+void camerawindow_set_hflip(CameraWindow * camera, gboolean flip);
+void camerawindow_set_vflip(CameraWindow * camera, gboolean flip);
 
 /* useful */
 CameraOverlay * camerawindow_add_overlay(CameraWindow * camera,
 		char const * filename, int opacity);
+
+int camerawindow_load(CameraWindow * window);
+int camerawindow_save(CameraWindow * window);
 
 #endif /* !CAMERA_WINDOW_H */

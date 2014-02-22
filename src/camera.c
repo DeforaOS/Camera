@@ -128,6 +128,10 @@ struct _Camera
 
 
 /* prototypes */
+/* accessors */
+static String * _camera_get_config_filename(Camera * camera, char const * name);
+
+/* useful */
 static int _camera_error(Camera * camera, char const * message, int ret);
 
 static int _camera_ioctl(Camera * camera, unsigned long request,
@@ -182,7 +186,7 @@ static DesktopToolbar _camera_toolbar[] =
 /* functions */
 /* camera_new */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device, int hflip, int vflip)
+		char const * device)
 {
 	Camera * camera;
 	GtkWidget * vbox;
@@ -191,12 +195,10 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
-	/* FIXME implement a preferences file */
-	if(device == NULL)
-		device = "/dev/video0";
-	camera->device = string_new(device);
-	camera->hflip = hflip ? TRUE : FALSE;
-	camera->vflip = vflip ? TRUE : FALSE;
+	camera->device = (device != NULL)
+		? string_new(device) : string_new("/dev/video0");
+	camera->hflip = FALSE;
+	camera->vflip = FALSE;
 	camera->ratio = TRUE;
 	camera->interp = GDK_INTERP_BILINEAR;
 	camera->source = 0;
@@ -323,6 +325,27 @@ GtkWidget * camera_get_widget(Camera * camera)
 }
 
 
+/* camera_set_aspect_ratio */
+void camera_set_aspect_ratio(Camera * camera, gboolean ratio)
+{
+	camera->ratio = ratio;
+}
+
+
+/* camera_set_hflip */
+void camera_set_hflip(Camera * camera, gboolean flip)
+{
+	camera->hflip = flip;
+}
+
+
+/* camera_set_vflip */
+void camera_set_vflip(Camera * camera, gboolean flip)
+{
+	camera->vflip = flip;
+}
+
+
 /* useful */
 /* camera_add_overlay */
 CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
@@ -341,6 +364,61 @@ CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
 }
 
 
+/* camera_load */
+char const * _load_variable(Camera * camera, Config * config,
+		char const * variable);
+
+int camera_load(Camera * camera)
+{
+	int ret = 0;
+	char * filename;
+	Config * config;
+	char const * p;
+
+	if((filename = _camera_get_config_filename(camera, CAMERA_CONFIG_FILE))
+			== NULL)
+		return -1;
+	if((config = config_new()) == NULL
+			|| config_load(config, filename) != 0)
+		ret = -1;
+	else
+	{
+		/* horizontal flipping */
+		camera->hflip = FALSE;
+		if((p = _load_variable(camera, config, "hflip")) != NULL
+				&& strtoul(p, NULL, 0) != 0)
+			camera->hflip = TRUE;
+		/* vertical flipping */
+		camera->vflip = FALSE;
+		if((p = _load_variable(camera, config, "vflip")) != NULL
+				&& strtoul(p, NULL, 0) != 0)
+			camera->vflip = TRUE;
+		/* aspect ratio */
+		camera->ratio = TRUE;
+		if((p = _load_variable(camera, config, "ratio")) != NULL
+				&& strtoul(p, NULL, 0) == 0)
+			camera->ratio = FALSE;
+		/* FIXME also implement interpolation and overlay images */
+	}
+	if(config != NULL)
+		config_delete(config);
+	free(filename);
+	return ret;
+}
+
+char const * _load_variable(Camera * camera, Config * config,
+		char const * variable)
+{
+	char const * ret;
+
+	/* check for any value specific to this camera */
+	if((ret = config_get(config, camera->device, variable)) != NULL)
+		return ret;
+	/* return the global value set (if any) */
+	return config_get(config, NULL, variable);
+}
+
+
 /* camera_open_gallery */
 void camera_open_gallery(Camera * camera)
 {
@@ -354,6 +432,41 @@ void camera_open_gallery(Camera * camera)
 		_camera_error(camera, error->message, 1);
 		g_error_free(error);
 	}
+}
+
+
+/* camera_save */
+static int _save_variable_bool(Camera * camera, Config * config,
+		char const * variable, gboolean value);
+
+int camera_save(Camera * camera)
+{
+	int ret = -1;
+	char * filename;
+	Config * config;
+
+	if((filename = _camera_get_config_filename(camera, CAMERA_CONFIG_FILE))
+			== NULL)
+		return -1;
+	if((config = config_new()) != NULL
+			&& access(filename, R_OK) == 0
+			&& config_load(config, filename) == 0)
+	{
+		/* XXX may fail */
+		_save_variable_bool(camera, config, "hflip", camera->hflip);
+		_save_variable_bool(camera, config, "vflip", camera->vflip);
+		_save_variable_bool(camera, config, "ratio", camera->ratio);
+		/* FIXME also implement interpolation and overlay images */
+		ret = config_save(config, filename);
+	}
+	free(filename);
+	return 0;
+}
+
+static int _save_variable_bool(Camera * camera, Config * config,
+		char const * variable, gboolean value)
+{
+	return config_set(config, camera->device, variable, value ? "1" : "0");
 }
 
 
@@ -427,7 +540,7 @@ static void _preferences_cancel(Camera * camera)
 
 static void _preferences_save(Camera * camera)
 {
-	/* FIXME implement */
+	camera_save(camera);
 }
 
 static void _preferences_window(Camera * camera)
@@ -829,6 +942,19 @@ void camera_stop(Camera * camera)
 
 /* private */
 /* functions */
+/* accessors */
+/* camera_get_config_filename */
+static String * _camera_get_config_filename(Camera * camera, char const * name)
+{
+	char const * homedir;
+
+	if((homedir = getenv("HOME")) == NULL)
+		homedir = g_get_home_dir();
+	return string_new_append(homedir, "/", name, NULL);
+}
+
+
+/* useful */
 /* camera_error */
 static int _error_text(char const * message, int ret);
 

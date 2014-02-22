@@ -155,7 +155,7 @@ static const DesktopMenubar _camerawindow_menubar[] =
 /* public */
 /* functions */
 /* camerawindow_new */
-CameraWindow * camerawindow_new(char const * device, int hflip, int vflip)
+CameraWindow * camerawindow_new(char const * device)
 {
 	CameraWindow * camera;
 	GtkAccelGroup * group;
@@ -171,8 +171,7 @@ CameraWindow * camerawindow_new(char const * device, int hflip, int vflip)
 	if(camera->window != NULL)
 	{
 		gtk_widget_realize(camera->window);
-		camera->camera = camera_new(camera->window, group, device,
-				hflip, vflip);
+		camera->camera = camera_new(camera->window, group, device);
 	}
 	if(camera->camera == NULL)
 	{
@@ -221,6 +220,13 @@ void camerawindow_delete(CameraWindow * camera)
 
 
 /* accessors */
+/* camerawindow_set_aspect_ratio */
+void camerawindow_set_aspect_ratio(CameraWindow * camera, gboolean ratio)
+{
+	camera_set_aspect_ratio(camera->camera, ratio);
+}
+
+
 /* camerawindow_set_fullscreen */
 void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen)
 {
@@ -228,6 +234,20 @@ void camerawindow_set_fullscreen(CameraWindow * camera, int fullscreen)
 		gtk_window_fullscreen(GTK_WINDOW(camera->window));
 	else
 		gtk_window_unfullscreen(GTK_WINDOW(camera->window));
+}
+
+
+/* camerawindow_set_hflip */
+void camerawindow_set_hflip(CameraWindow * camera, gboolean flip)
+{
+	camera_set_hflip(camera->camera, flip);
+}
+
+
+/* camerawindow_set_vflip */
+void camerawindow_set_vflip(CameraWindow * camera, gboolean flip)
+{
+	camera_set_vflip(camera->camera, flip);
 }
 
 
@@ -240,6 +260,21 @@ CameraOverlay * camerawindow_add_overlay(CameraWindow * camera,
 }
 
 
+/* camerawindow_load */
+int camerawindow_load(CameraWindow * camera)
+{
+	return camera_load(camera->camera);
+}
+
+
+/* camerawindow_save */
+int camerawindow_save(CameraWindow * camera)
+{
+	return camera_save(camera->camera);
+}
+
+
+/* private */
 /* callbacks */
 /* camerawindow_on_close */
 static void _camerawindow_on_close(gpointer data)

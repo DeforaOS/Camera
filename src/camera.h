@@ -21,6 +21,11 @@
 # include "overlay.h"
 
 
+/* Camera */
+/* defaults */
+# define CAMERA_CONFIG_FILE	".camera"
+
+
 /* public */
 /* types */
 typedef struct _Camera Camera;
@@ -34,11 +39,15 @@ typedef enum _CameraSnapshotFormat
 
 /* functions */
 Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
-		char const * device, int hflip, int vflip);
+		char const * device);
 void camera_delete(Camera * camera);
 
 /* accessors */
 GtkWidget * camera_get_widget(Camera * camera);
+
+void camera_set_aspect_ratio(Camera * camera, gboolean ratio);
+void camera_set_hflip(Camera * camera, gboolean flip);
+void camera_set_vflip(Camera * camera, gboolean flip);
 
 /* useful */
 void camera_open_gallery(Camera * camera);
@@ -47,6 +56,9 @@ int camera_snapshot(Camera * camera, CameraSnapshotFormat format);
 
 void camera_show_preferences(Camera * camera, gboolean show);
 void camera_show_properties(Camera * camera, gboolean show);
+
+int camera_load(Camera * camera);
+int camera_save(Camera * camera);
 
 void camera_start(Camera * camera);
 void camera_stop(Camera * camera);

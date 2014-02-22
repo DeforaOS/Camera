@@ -64,8 +64,13 @@ static int _camera(int embedded, char const * device, int hflip, int vflip,
 
 	if(embedded != 0)
 		return _camera_embedded(device, hflip, vflip, overlay);
-	if((camera = camerawindow_new(device, hflip, vflip)) == NULL)
+	if((camera = camerawindow_new(device)) == NULL)
 		return error_print(PACKAGE);
+	camerawindow_load(camera);
+	if(hflip >= 0)
+		camerawindow_set_hflip(camera, hflip ? TRUE : FALSE);
+	if(vflip >= 0)
+		camerawindow_set_vflip(camera, vflip ? TRUE : FALSE);
 	if(overlay != NULL)
 		camerawindow_add_overlay(camera, overlay, 50);
 	gtk_main();
@@ -85,12 +90,16 @@ static int _camera_embedded(char const * device, int hflip, int vflip,
 	gtk_widget_realize(window);
 	g_signal_connect_swapped(window, "embedded", G_CALLBACK(
 				_embedded_on_embedded), window);
-	if((camera = camera_new(window, NULL, device, hflip, vflip)) == NULL)
+	if((camera = camera_new(window, NULL, device)) == NULL)
 	{
 		error_print(PACKAGE);
 		gtk_widget_destroy(window);
 		return -1;
 	}
+	if(hflip >= 0)
+		camera_set_hflip(camera, hflip ? TRUE : FALSE);
+	if(vflip >= 0)
+		camera_set_vflip(camera, vflip ? TRUE : FALSE);
 	if(overlay != NULL)
 		camera_add_overlay(camera, overlay, 50);
 	widget = camera_get_widget(camera);
@@ -127,8 +136,10 @@ static int _usage(void)
 	fprintf(stderr, _("Usage: %s [-d device][-O filename][-HVx]\n"
 "  -d	Video device to open\n"
 "  -H	Flip horizontally\n"
+"  -h	Do not flip horizontally\n"
 "  -O	Use this file as an overlay\n"
 "  -V	Flip vertically\n"
+"  -v	Do not flip vertically\n"
 "  -x	Start in embedded mode\n"), PROGNAME);
 	return 1;
 }
@@ -142,8 +153,8 @@ int main(int argc, char * argv[])
 	int o;
 	int embedded = 0;
 	char const * device = NULL;
-	int hflip = 0;
-	int vflip = 0;
+	int hflip = -1;
+	int vflip = -1;
 	char const * overlay = NULL;
 
 	if(setlocale(LC_ALL, "") == NULL)
@@ -151,7 +162,7 @@ int main(int argc, char * argv[])
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	gtk_init(&argc, &argv);
-	while((o = getopt(argc, argv, "d:HO:Vx")) != -1)
+	while((o = getopt(argc, argv, "d:HhO:Vvx")) != -1)
 		switch(o)
 		{
 			case 'd':
@@ -160,11 +171,17 @@ int main(int argc, char * argv[])
 			case 'H':
 				hflip = 1;
 				break;
+			case 'h':
+				hflip = 0;
+				break;
 			case 'O':
 				overlay = optarg;
 				break;
 			case 'V':
 				vflip = 1;
+				break;
+			case 'v':
+				vflip = 0;
 				break;
 			case 'x':
 				embedded = 1;
