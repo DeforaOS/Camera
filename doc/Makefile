@@ -12,13 +12,13 @@ all: $(TARGETS)
 camera.1: camera.xml
 	./docbook.sh -P "$(PREFIX)" -- "camera.1"
 
-camera.html: camera.xml
+camera.html: camera.css.xml camera.xml manual.css.xml
 	./docbook.sh -P "$(PREFIX)" -- "camera.html"
 
 gallery.1: gallery.xml
 	./docbook.sh -P "$(PREFIX)" -- "gallery.1"
 
-gallery.html: gallery.xml
+gallery.html: gallery.css.xml gallery.xml manual.css.xml
 	./docbook.sh -P "$(PREFIX)" -- "gallery.html"
 
 clean:

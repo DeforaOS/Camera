@@ -27,8 +27,11 @@ dist:
 		$(PACKAGE)-$(VERSION)/data/project.conf \
 		$(PACKAGE)-$(VERSION)/doc/Makefile \
 		$(PACKAGE)-$(VERSION)/doc/docbook.sh \
+		$(PACKAGE)-$(VERSION)/doc/camera.css.xml \
 		$(PACKAGE)-$(VERSION)/doc/camera.xml \
+		$(PACKAGE)-$(VERSION)/doc/gallery.css.xml \
 		$(PACKAGE)-$(VERSION)/doc/gallery.xml \
+		$(PACKAGE)-$(VERSION)/doc/manual.css.xml \
 		$(PACKAGE)-$(VERSION)/doc/project.conf \
 		$(PACKAGE)-$(VERSION)/po/Makefile \
 		$(PACKAGE)-$(VERSION)/po/gettext.sh \
