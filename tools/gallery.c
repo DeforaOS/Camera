@@ -35,6 +35,9 @@
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
+#ifndef BINDIR
+# define BINDIR		PREFIX "/bin"
+#endif
 #ifndef DATADIR
 # define DATADIR	PREFIX "/share"
 #endif
@@ -57,6 +60,7 @@ static int _usage(void);
 static int _gallery(void)
 {
 	char const * homedir;
+	char const browser[] = BINDIR "/browser";
 	char const dcim[] = "DCIM";
 	char * path;
 #if GTK_CHECK_VERSION(2, 6, 0)
@@ -74,8 +78,8 @@ static int _gallery(void)
 	/* this error should be caught by the final program */
 	mkdir(path, 0777);
 	argv[arg] = path;
-	execvp(argv[0], argv);
-	_error(argv[0], 1);
+	execv(browser, argv);
+	_error(browser, 1);
 	g_free(path);
 	return -1;
 }
