@@ -23,6 +23,9 @@ gallery.html: gallery.css.xml gallery.xml manual.css.xml
 
 clean:
 	$(RM) -- $(camera.1_OBJS) $(camera.html_OBJS) $(gallery.1_OBJS) $(gallery.html_OBJS)
+	./docbook.sh -c -P "$(PREFIX)" -- "camera.1"
+	./docbook.sh -c -P "$(PREFIX)" -- "camera.html"
+	./docbook.sh -c -P "$(PREFIX)" -- "gallery.1"
 	./docbook.sh -c -P "$(PREFIX)" -- "gallery.html"
 
 distclean: clean

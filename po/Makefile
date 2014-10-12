@@ -17,6 +17,7 @@ fr.mo: Camera.pot fr.po
 
 clean:
 	$(RM) -- $(Camera.pot_OBJS) $(fr.mo_OBJS)
+	./gettext.sh -c -P "$(PREFIX)" -- "Camera.pot"
 	./gettext.sh -c -P "$(PREFIX)" -- "fr.mo"
 
 distclean: clean
