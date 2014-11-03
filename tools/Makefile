@@ -1,4 +1,5 @@
-TARGETS	= gallery
+TARGETS	= $(OBJDIR)gallery
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 BINDIR	= $(PREFIX)/bin
@@ -17,15 +18,15 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-gallery_OBJS = gallery.o
+gallery_OBJS = $(OBJDIR)gallery.o
 gallery_CFLAGS = $(CPPFLAGSF) $(CPPFLAGS) $(CFLAGSF) $(CFLAGS)
 gallery_LDFLAGS = $(LDFLAGSF) $(LDFLAGS)
 
-gallery: $(gallery_OBJS)
-	$(CC) -o gallery $(gallery_OBJS) $(gallery_LDFLAGS)
+$(OBJDIR)gallery: $(gallery_OBJS)
+	$(CC) -o $(OBJDIR)gallery $(gallery_OBJS) $(gallery_LDFLAGS)
 
-gallery.o: gallery.c ../config.h
-	$(CC) $(gallery_CFLAGS) -c gallery.c
+$(OBJDIR)gallery.o: gallery.c ../config.h
+	$(CC) $(gallery_CFLAGS) -o $(OBJDIR)gallery.o -c gallery.c
 
 clean:
 	$(RM) -- $(gallery_OBJS)
@@ -35,7 +36,7 @@ distclean: clean
 
 install: $(TARGETS)
 	$(MKDIR) $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 0755 gallery $(DESTDIR)$(BINDIR)/gallery
+	$(INSTALL) -m 0755 $(OBJDIR)gallery $(DESTDIR)$(BINDIR)/gallery
 
 uninstall:
 	$(RM) -- $(DESTDIR)$(BINDIR)/gallery

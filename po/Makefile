@@ -1,4 +1,5 @@
-TARGETS	= Camera.pot fr.mo
+TARGETS	= $(OBJDIR)Camera.pot $(OBJDIR)fr.mo
+OBJDIR	=
 PREFIX	= /usr/local
 DESTDIR	=
 RM	= rm -f
@@ -9,11 +10,11 @@ INSTALL	= install
 
 all: $(TARGETS)
 
-Camera.pot: POTFILES
-	./gettext.sh -P "$(PREFIX)" -- "Camera.pot"
+$(OBJDIR)Camera.pot: POTFILES
+	./gettext.sh -P "$(PREFIX)" -- "$(OBJDIR)Camera.pot"
 
-fr.mo: Camera.pot fr.po
-	./gettext.sh -P "$(PREFIX)" -- "fr.mo"
+$(OBJDIR)fr.mo: $(OBJDIR)Camera.pot fr.po
+	./gettext.sh -P "$(PREFIX)" -- "$(OBJDIR)fr.mo"
 
 clean:
 	$(RM) -- $(Camera.pot_OBJS) $(fr.mo_OBJS)
@@ -24,7 +25,7 @@ distclean: clean
 	$(RM) -- $(TARGETS)
 
 install: $(TARGETS)
-	./gettext.sh -P "$(DESTDIR)$(PREFIX)" -i -- "fr.mo"
+	./gettext.sh -P "$(DESTDIR)$(PREFIX)" -i -- "$(OBJDIR)fr.mo"
 
 uninstall:
 	./gettext.sh -P "$(DESTDIR)$(PREFIX)" -u -- "fr.mo"
