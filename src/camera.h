@@ -32,7 +32,8 @@ typedef struct _Camera Camera;
 
 typedef enum _CameraSnapshotFormat
 {
-	CSF_PNG = 0,
+	CSF_DEFAULT = 0,
+	CSF_PNG,
 	CSF_JPEG
 } CameraSnapshotFormat;
 

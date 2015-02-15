@@ -77,6 +77,7 @@ struct _Camera
 	gboolean vflip;
 	gboolean ratio;
 	GdkInterpType interp;
+	CameraSnapshotFormat snapshot_format;
 
 	guint source;
 	int fd;
@@ -201,6 +202,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->vflip = FALSE;
 	camera->ratio = TRUE;
 	camera->interp = GDK_INTERP_BILINEAR;
+	camera->snapshot_format = CSF_PNG;
 	camera->source = 0;
 	camera->fd = -1;
 	memset(&camera->cap, 0, sizeof(camera->cap));
@@ -366,7 +368,7 @@ CameraOverlay * camera_add_overlay(Camera * camera, char const * filename,
 
 /* camera_load */
 char const * _load_variable(Camera * camera, Config * config,
-		char const * variable);
+		char const * section, char const * variable);
 
 int camera_load(Camera * camera)
 {
@@ -374,6 +376,7 @@ int camera_load(Camera * camera)
 	char * filename;
 	Config * config;
 	char const * p;
+	char const jpeg[] = "jpeg";
 
 	if((filename = _camera_get_config_filename(camera, CAMERA_CONFIG_FILE))
 			== NULL)
@@ -385,19 +388,25 @@ int camera_load(Camera * camera)
 	{
 		/* horizontal flipping */
 		camera->hflip = FALSE;
-		if((p = _load_variable(camera, config, "hflip")) != NULL
+		if((p = _load_variable(camera, config, NULL, "hflip")) != NULL
 				&& strtoul(p, NULL, 0) != 0)
 			camera->hflip = TRUE;
 		/* vertical flipping */
 		camera->vflip = FALSE;
-		if((p = _load_variable(camera, config, "vflip")) != NULL
+		if((p = _load_variable(camera, config, NULL, "vflip")) != NULL
 				&& strtoul(p, NULL, 0) != 0)
 			camera->vflip = TRUE;
 		/* aspect ratio */
 		camera->ratio = TRUE;
-		if((p = _load_variable(camera, config, "ratio")) != NULL
+		if((p = _load_variable(camera, config, NULL, "ratio")) != NULL
 				&& strtoul(p, NULL, 0) == 0)
 			camera->ratio = FALSE;
+		/* snapshot format */
+		camera->snapshot_format = CSF_PNG;
+		if((p = _load_variable(camera, config, "snapshot", "format"))
+				!= NULL
+				&& strcmp(p, jpeg) == 0)
+			camera->snapshot_format = CSF_JPEG;
 		/* FIXME also implement interpolation and overlay images */
 	}
 	if(config != NULL)
@@ -407,15 +416,16 @@ int camera_load(Camera * camera)
 }
 
 char const * _load_variable(Camera * camera, Config * config,
-		char const * variable)
+		char const * section, char const * variable)
 {
 	char const * ret;
 
 	/* check for any value specific to this camera */
-	if((ret = config_get(config, camera->device, variable)) != NULL)
-		return ret;
+	if(section == NULL)
+		if((ret = config_get(config, camera->device, variable)) != NULL)
+			return ret;
 	/* return the global value set (if any) */
-	return config_get(config, NULL, variable);
+	return config_get(config, section, variable);
 }
 
 
@@ -800,6 +810,8 @@ int camera_snapshot(Camera * camera, CameraSnapshotFormat format)
 	if(camera->rgb_buffer == NULL)
 		/* ignore the action */
 		return 0;
+	if(format == CSF_DEFAULT)
+		format = camera->snapshot_format;
 	switch(format)
 	{
 		case CSF_JPEG:
@@ -807,6 +819,7 @@ int camera_snapshot(Camera * camera, CameraSnapshotFormat format)
 			break;
 		case CSF_PNG:
 		default:
+			format = CSF_PNG;
 			ext = png;
 			break;
 	}
@@ -1546,5 +1559,5 @@ static void _camera_on_snapshot(gpointer data)
 {
 	Camera * camera = data;
 
-	camera_snapshot(camera, CSF_PNG);
+	camera_snapshot(camera, CSF_DEFAULT);
 }
