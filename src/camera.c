@@ -78,6 +78,7 @@ struct _Camera
 	gboolean ratio;
 	GdkInterpType interp;
 	CameraSnapshotFormat snapshot_format;
+	int snapshot_quality;
 
 	guint source;
 	int fd;
@@ -203,6 +204,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->ratio = TRUE;
 	camera->interp = GDK_INTERP_BILINEAR;
 	camera->snapshot_format = CSF_PNG;
+	camera->snapshot_quality = 100;
 	camera->source = 0;
 	camera->fd = -1;
 	memset(&camera->cap, 0, sizeof(camera->cap));
@@ -376,7 +378,9 @@ int camera_load(Camera * camera)
 	char * filename;
 	Config * config;
 	char const * p;
+	char * q;
 	char const jpeg[] = "jpeg";
+	int i;
 
 	if((filename = _camera_get_config_filename(camera, CAMERA_CONFIG_FILE))
 			== NULL)
@@ -407,6 +411,13 @@ int camera_load(Camera * camera)
 				!= NULL
 				&& strcmp(p, jpeg) == 0)
 			camera->snapshot_format = CSF_JPEG;
+		/* snapshot quality */
+		camera->snapshot_quality = 100;
+		if((p = _load_variable(camera, config, "snapshot", "quality"))
+				!= NULL
+				&& p[0] != '\0' && (i = strtol(p, &q, 10)) >= 0
+				&& *q == '\0' && i <= 100)
+			camera->snapshot_quality = i;
 		/* FIXME also implement interpolation and overlay images */
 	}
 	if(config != NULL)
@@ -900,6 +911,7 @@ static int _snapshot_save(Camera * camera, char const * path,
 {
 	struct v4l2_pix_format * pix = &camera->format.fmt.pix;
 	GdkPixbuf * pixbuf;
+	char buf[16];
 	gboolean res;
 	GError * error = NULL;
 
@@ -911,8 +923,10 @@ static int _snapshot_save(Camera * camera, char const * path,
 	switch(format)
 	{
 		case CSF_JPEG:
+			snprintf(buf, sizeof(buf), "%d",
+					camera->snapshot_quality);
 			res = gdk_pixbuf_save(pixbuf, path, "jpeg", &error,
-					"quality", "100", NULL);
+					"quality", buf, NULL);
 			break;
 		case CSF_PNG:
 			res = gdk_pixbuf_save(pixbuf, path, "png", &error,
