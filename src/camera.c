@@ -899,7 +899,7 @@ static int _snapshot_save(Camera * camera, char const * path,
 	{
 		case CSF_JPEG:
 			res = gdk_pixbuf_save(pixbuf, path, "jpeg", &error,
-					"quality", 100, NULL);
+					"quality", "100", NULL);
 			break;
 		case CSF_PNG:
 			res = gdk_pixbuf_save(pixbuf, path, "png", &error,
