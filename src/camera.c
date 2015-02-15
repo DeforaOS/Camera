@@ -925,9 +925,8 @@ int camera_snapshot(Camera * camera, CameraSnapshotFormat format)
 	int ret;
 	char const * homedir;
 	char const dcim[] = "DCIM";
-	char const * ext;
-	char const png[] = ".png";
-	char const jpeg[] = ".jpeg";
+	char const * ext[CSF_COUNT] = { NULL, ".png", ".jpeg" };
+	char const * e;
 	char * path;
 
 	if(camera->rgb_buffer == NULL)
@@ -938,19 +937,19 @@ int camera_snapshot(Camera * camera, CameraSnapshotFormat format)
 	switch(format)
 	{
 		case CSF_JPEG:
-			ext = jpeg;
-			break;
 		case CSF_PNG:
+			e = ext[format];
+			break;
 		default:
 			format = CSF_PNG;
-			ext = png;
+			e = ext[format];
 			break;
 	}
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
 	if(_snapshot_dcim(camera, homedir, dcim) != 0)
 		return -1;
-	if((path = _snapshot_path(camera, homedir, dcim, ext)) == NULL)
+	if((path = _snapshot_path(camera, homedir, dcim, e)) == NULL)
 		return -1;
 	ret = _snapshot_save(camera, path, format);
 	free(path);
