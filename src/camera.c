@@ -686,7 +686,6 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_label_new((value != NULL) ? value : "");
-	gtk_label_set_ellipsize(GTK_LABEL(widget), PANGO_ELLIPSIZE_END);
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, TRUE, TRUE, 0);
 	return hbox;
@@ -730,7 +729,6 @@ static void _properties_window(Camera * camera)
 			gtk_image_new_from_stock(GTK_STOCK_PROPERTIES,
 				GTK_ICON_SIZE_DIALOG));
 #endif
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 300, 200);
 	gtk_window_set_title(GTK_WINDOW(dialog), _("Properties"));
 	g_signal_connect_swapped(dialog, "response", G_CALLBACK(
 				_properties_on_response), camera);
