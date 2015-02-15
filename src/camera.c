@@ -662,6 +662,7 @@ static void _preferences_window(Camera * camera)
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_APPLY, GTK_RESPONSE_APPLY,
 			GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
 	camera->pr_window = dialog;
 	g_signal_connect(dialog, "response", G_CALLBACK(
 				_preferences_on_response), camera);
