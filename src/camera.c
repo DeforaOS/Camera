@@ -727,10 +727,11 @@ static void _preferences_window(Camera * camera)
 		gtk_list_store_set(store, &iter, 0, sformats[i].format,
 				1, sformats[i].name, -1);
 	}
-	camera->pr_sformat = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+	camera->pr_sformat = gtk_combo_box_new_with_model(
+			GTK_TREE_MODEL(store));
 	renderer = gtk_cell_renderer_text_new();
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(camera->pr_sformat), renderer,
-			TRUE);
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(camera->pr_sformat),
+			renderer, TRUE);
 	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(camera->pr_sformat),
 			renderer, "text", 1, NULL);
 	gtk_box_pack_start(GTK_BOX(widget), camera->pr_sformat, TRUE, TRUE, 0);
