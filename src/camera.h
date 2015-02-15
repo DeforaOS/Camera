@@ -36,6 +36,8 @@ typedef enum _CameraSnapshotFormat
 	CSF_PNG,
 	CSF_JPEG
 } CameraSnapshotFormat;
+# define CSF_LAST CSF_JPEG
+# define CSF_COUNT (CSF_LAST + 1)
 
 
 /* functions */

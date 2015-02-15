@@ -124,6 +124,7 @@ struct _Camera
 	GtkWidget * pr_vflip;
 	GtkWidget * pr_ratio;
 	GtkWidget * pr_interp;
+	GtkWidget * pr_sformat;
 	/* properties */
 	GtkWidget * pp_window;
 };
@@ -458,13 +459,19 @@ void camera_open_gallery(Camera * camera)
 
 /* camera_save */
 static int _save_variable_bool(Camera * camera, Config * config,
-		char const * variable, gboolean value);
+		char const * section, char const * variable, gboolean value);
+static int _save_variable_int(Camera * camera, Config * config,
+		char const * section, char const * variable, int value);
+static int _save_variable_string(Camera * camera, Config * config,
+		char const * section, char const * variable,
+		char const * value);
 
 int camera_save(Camera * camera)
 {
 	int ret = -1;
 	char * filename;
 	Config * config;
+	char const * sformats[CSF_COUNT] = { NULL, "png", "jpeg" };
 
 	if((filename = _camera_get_config_filename(camera, CAMERA_CONFIG_FILE))
 			== NULL)
@@ -474,9 +481,16 @@ int camera_save(Camera * camera)
 			&& config_load(config, filename) == 0)
 	{
 		/* XXX may fail */
-		_save_variable_bool(camera, config, "hflip", camera->hflip);
-		_save_variable_bool(camera, config, "vflip", camera->vflip);
-		_save_variable_bool(camera, config, "ratio", camera->ratio);
+		_save_variable_bool(camera, config, NULL, "hflip",
+				camera->hflip);
+		_save_variable_bool(camera, config, NULL, "vflip",
+				camera->vflip);
+		_save_variable_bool(camera, config, NULL, "ratio",
+				camera->ratio);
+		_save_variable_string(camera, config, "snapshot", "format",
+				sformats[camera->snapshot_format]);
+		_save_variable_int(camera, config, "snapshot", "quality",
+				camera->snapshot_quality);
 		/* FIXME also implement interpolation and overlay images */
 		ret = config_save(config, filename);
 	}
@@ -487,9 +501,31 @@ int camera_save(Camera * camera)
 }
 
 static int _save_variable_bool(Camera * camera, Config * config,
-		char const * variable, gboolean value)
+		char const * section, char const * variable, gboolean value)
 {
-	return config_set(config, camera->device, variable, value ? "1" : "0");
+	if(section == NULL)
+		section = camera->device;
+	return config_set(config, section, variable, value ? "1" : "0");
+}
+
+static int _save_variable_int(Camera * camera, Config * config,
+		char const * section, char const * variable, int value)
+{
+	char buf[16];
+
+	if(section == NULL)
+		section = camera->device;
+	snprintf(buf, sizeof(buf), "%d", value);
+	return config_set(config, section, variable, buf);
+}
+
+static int _save_variable_string(Camera * camera, Config * config,
+		char const * section, char const * variable,
+		char const * value)
+{
+	if(section == NULL)
+		section = camera->device;
+	return config_set(config, section, variable, value);
 }
 
 
@@ -523,12 +559,22 @@ static void _preferences_apply(Camera * camera)
 				camera->pr_vflip));
 	camera->ratio = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
 				camera->pr_ratio));
+	/* interpolation */
 	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(camera->pr_interp),
 				&iter) == TRUE)
 	{
 		model = gtk_combo_box_get_model(GTK_COMBO_BOX(
 					camera->pr_interp));
 		gtk_tree_model_get(model, &iter, 0, &camera->interp, -1);
+	}
+	/* snapshot format */
+	if(gtk_combo_box_get_active_iter(GTK_COMBO_BOX(camera->pr_sformat),
+				&iter) == TRUE)
+	{
+		model = gtk_combo_box_get_model(GTK_COMBO_BOX(
+					camera->pr_sformat));
+		gtk_tree_model_get(model, &iter, 0, &camera->snapshot_format,
+				-1);
 	}
 }
 
@@ -538,6 +584,7 @@ static void _preferences_cancel(Camera * camera)
 	GtkTreeIter iter;
 	gboolean valid;
 	GdkInterpType interp;
+	CameraSnapshotFormat format;
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(camera->pr_hflip),
 			camera->hflip);
@@ -559,6 +606,20 @@ static void _preferences_cancel(Camera * camera)
 				&iter);
 	else
 		gtk_combo_box_set_active(GTK_COMBO_BOX(camera->pr_interp), 0);
+	/* snapshot format */
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(camera->pr_sformat));
+	for(valid = gtk_tree_model_get_iter_first(model, &iter); valid == TRUE;
+			valid = gtk_tree_model_iter_next(model, &iter))
+	{
+		gtk_tree_model_get(model, &iter, 0, &format, -1);
+		if(format == camera->snapshot_format)
+			break;
+	}
+	if(valid)
+		gtk_combo_box_set_active_iter(GTK_COMBO_BOX(camera->pr_sformat),
+				&iter);
+	else
+		gtk_combo_box_set_active(GTK_COMBO_BOX(camera->pr_sformat), 0);
 }
 
 static void _preferences_save(Camera * camera)
@@ -569,6 +630,7 @@ static void _preferences_save(Camera * camera)
 static void _preferences_window(Camera * camera)
 {
 	GtkWidget * dialog;
+	GtkWidget * notebook;
 	GtkWidget * vbox;
 	GtkWidget * widget;
 	GtkListStore * store;
@@ -584,6 +646,14 @@ static void _preferences_window(Camera * camera)
 		{ GDK_INTERP_BILINEAR, N_("Bilinear") },
 		{ GDK_INTERP_HYPER, N_("Hyperbolic") },
 	};
+	const struct {
+		CameraSnapshotFormat format;
+		char const * name;
+	} sformats[CSF_COUNT - 1] =
+	{
+		{ CSF_JPEG, "JPEG" },
+		{ CSF_PNG, "PNG" }
+	};
 	size_t i;
 
 	dialog = gtk_dialog_new_with_buttons(_("Preferences"),
@@ -595,12 +665,13 @@ static void _preferences_window(Camera * camera)
 	camera->pr_window = dialog;
 	g_signal_connect(dialog, "response", G_CALLBACK(
 				_preferences_on_response), camera);
-#if GTK_CHECK_VERSION(2, 14, 0)
-	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+	notebook = gtk_notebook_new();
+	/* picture */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
 #else
-	vbox = dialog->vbox;
+	vbox = gtk_vbox_new(FALSE, 4);
 #endif
-	gtk_box_set_spacing(GTK_BOX(vbox), 4);
 	camera->pr_hflip = gtk_check_button_new_with_mnemonic(
 			_("Flip _horizontally"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_hflip, FALSE, TRUE, 0);
@@ -633,6 +704,46 @@ static void _preferences_window(Camera * camera)
 			renderer, "text", 1, NULL);
 	gtk_box_pack_start(GTK_BOX(widget), camera->pr_interp, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox,
+			gtk_label_new(_("Picture")));
+	/* snapshots */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+#else
+	vbox = gtk_vbox_new(FALSE, 4);
+#endif
+	/* format */
+#if GTK_CHECK_VERSION(3, 0, 0)
+	widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+#else
+	widget = gtk_hbox_new(FALSE, 4);
+#endif
+	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Format: ")),
+			FALSE, TRUE, 0);
+	store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_STRING);
+	for(i = 0; i < sizeof(sformats) / sizeof(*sformats); i++)
+	{
+		gtk_list_store_append(store, &iter);
+		gtk_list_store_set(store, &iter, 0, sformats[i].format,
+				1, sformats[i].name, -1);
+	}
+	camera->pr_sformat = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(camera->pr_sformat), renderer,
+			TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(camera->pr_sformat),
+			renderer, "text", 1, NULL);
+	gtk_box_pack_start(GTK_BOX(widget), camera->pr_sformat, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox,
+			gtk_label_new(_("Snapshots")));
+#if GTK_CHECK_VERSION(2, 14, 0)
+	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+	vbox = dialog->vbox;
+#endif
+	gtk_box_set_spacing(GTK_BOX(vbox), 4);
+	gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	_preferences_cancel(camera);
 }
