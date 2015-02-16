@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camera 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-22 18:42+0100\n"
+"POT-Creation-Date: 2015-02-11 22:15+0000\n"
 "PO-Revision-Date: 2013-01-18 22:31+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
@@ -16,150 +16,160 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../src/camera.c:158
+#: ../src/camera.c:163
 msgid "Snapshot"
 msgstr "Capture"
 
-#: ../src/camera.c:161
+#: ../src/camera.c:166
 msgid "Gallery"
 msgstr "Gallerie"
 
-#: ../src/camera.c:165 ../src/camera.c:172 ../src/camera.c:607
-#: ../src/camera.c:618
+#: ../src/camera.c:170 ../src/camera.c:177 ../src/camera.c:723
+#: ../src/camera.c:734
 msgid "Properties"
 msgstr "Propriétés"
 
-#: ../src/camera.c:168 ../src/camera.c:452
+#: ../src/camera.c:173 ../src/camera.c:568
 msgid "Preferences"
 msgstr "Préférences"
 
-#: ../src/camera.c:445
+#: ../src/camera.c:561
 msgid "Nearest"
 msgstr "Approximative"
 
-#: ../src/camera.c:446
+#: ../src/camera.c:562
 msgid "Tiles"
 msgstr "Mosaïque"
 
-#: ../src/camera.c:447
+#: ../src/camera.c:563
 msgid "Bilinear"
 msgstr "Bilinéaire"
 
-#: ../src/camera.c:448
+#: ../src/camera.c:564
 msgid "Hyperbolic"
 msgstr "Hyperbolique"
 
-#: ../src/camera.c:468
+#: ../src/camera.c:584
 msgid "Flip _horizontally"
 msgstr "Retourner l'image _horizontalement"
 
-#: ../src/camera.c:471
+#: ../src/camera.c:587
 msgid "Flip _vertically"
 msgstr "Retourner l'image _verticalement"
 
-#: ../src/camera.c:474
+#: ../src/camera.c:590
 msgid "Keep aspect _ratio"
 msgstr "Préserver l'_aspect"
 
-#: ../src/camera.c:482
+#: ../src/camera.c:598
 msgid "Interpolation: "
 msgstr "Interpolation : "
 
-#: ../src/camera.c:629
+#: ../src/camera.c:745
 msgid "Driver: "
 msgstr "Pilote : "
 
-#: ../src/camera.c:633
+#: ../src/camera.c:749
 msgid "Card: "
 msgstr "Carte : "
 
-#: ../src/camera.c:637
+#: ../src/camera.c:753
 msgid "Bus info: "
 msgstr "Bus : "
 
-#: ../src/camera.c:641
+#: ../src/camera.c:757
 msgid "Version: "
 msgstr "Version : "
 
-#: ../src/camera.c:654
+#: ../src/camera.c:770
 msgid "Capabilities: "
 msgstr "Capacités : "
 
-#: ../src/camera.c:716 ../src/camera.c:719 ../src/camera.c:739
-#: ../src/camera.c:758 ../src/camera.c:783 ../src/camera.c:801
-#: ../src/camera.c:894
+#: ../src/camera.c:832 ../src/camera.c:835 ../src/camera.c:855
+#: ../src/camera.c:874 ../src/camera.c:899 ../src/camera.c:917
+#: ../src/camera.c:1023
 msgid "Could not save picture"
 msgstr "Impossible d'enregistrer l'image"
 
-#: ../src/camera.c:803
+#: ../src/camera.c:919
 msgid "Unknown error"
 msgstr "Erreur inconnue"
 
-#: ../src/camera.c:850 ../src/camera.c:854
+#: ../src/camera.c:979 ../src/camera.c:983
 msgid "Error"
 msgstr "Erreur"
 
-#: ../src/camera.c:1043
+#: ../src/camera.c:1172
 msgid "Could not open the video capture device"
 msgstr "Impossible d'ouvrir le périphérique de capture vidéo"
 
-#: ../src/camera.c:1080
+#: ../src/camera.c:1209
 msgid "Could not obtain the capabilities"
 msgstr "Impossible d'obtenir les capacités"
 
-#: ../src/camera.c:1084
+#: ../src/camera.c:1213
 msgid "Not a video capture device"
 msgstr "Pas de périphérique de capture vidéo"
 
-#: ../src/camera.c:1097
+#: ../src/camera.c:1226
 msgid "Cropping not supported"
 msgstr "Recadrage non supporté"
 
-#: ../src/camera.c:1102
+#: ../src/camera.c:1231
 msgid "Could not obtain the video capture format"
 msgstr "Impossible d'obtenir le format de capture vidéo"
 
-#: ../src/camera.c:1106
+#: ../src/camera.c:1235
 msgid "Unsupported video capture type"
 msgstr "Type de capture vidéo non supporté"
 
-#: ../src/camera.c:1117
+#: ../src/camera.c:1246
 msgid "Unsupported capabilities"
 msgstr "Capacités non supportées"
 
-#: ../src/camera.c:1149
+#: ../src/camera.c:1278
 msgid "Could not request buffers"
 msgstr "Impossible de demander le cache"
 
-#: ../src/camera.c:1152
+#: ../src/camera.c:1281
 msgid "Could not obtain enough buffers"
 msgstr "Impossible d'obtenir suffisamment de cache"
 
-#: ../src/camera.c:1156
+#: ../src/camera.c:1285
 msgid "Could not allocate buffers"
 msgstr "Impossible d'allouer le cache"
 
-#: ../src/camera.c:1172
+#: ../src/camera.c:1301
 msgid "Could not setup buffers"
 msgstr "Impossible de configurer le cache"
 
-#: ../src/camera.c:1178
+#: ../src/camera.c:1307
 msgid "Could not map buffers"
 msgstr "Impossible d'étaler le cache"
 
-#: ../src/main.c:116
+#: ../src/main.c:140
 #, c-format
 msgid ""
-"Usage: %s [-d device][-O filename][-Hx]\n"
+"Usage: %s [-d device][-O filename][-HhRrVvx]\n"
 "  -d\tVideo device to open\n"
 "  -H\tFlip horizontally\n"
+"  -h\tDo not flip horizontally\n"
 "  -O\tUse this file as an overlay\n"
+"  -R\tPreserve the aspect ratio when scaling\n"
+"  -r\tDo not preserve the aspect ratio when scaling\n"
+"  -V\tFlip vertically\n"
+"  -v\tDo not flip vertically\n"
 "  -x\tStart in embedded mode\n"
 msgstr ""
-"Usage: %s [-d périphérique]\n"
+"Usage: %s [-d périphérique][-o fichier][-HhRrVvx]\n"
 "  -d\tPériphérique video à ouvrir\n"
 "  -H\tRetourner l'image horizontalement\n"
+"  -h\tNe pas retourner l'image horizontalement\n"
 "  -O\tFichier en surimpression\n"
+"  -R\tPréserver l'aspect original\n"
+"  -r\tNe pas préserver l'aspect original\n"
+"  -V\tRetourner l'image verticalement\n"
+"  -v\tNe pas retourner l'image verticalement\n"
 "  -x\tDémarrer en mode embarqué\n"
 
 #: ../src/window.c:99
@@ -210,11 +220,11 @@ msgstr "_Vue"
 msgid "_Help"
 msgstr "_Aide"
 
-#: ../src/window.c:365
+#: ../src/window.c:400
 msgid "Simple camera application for the DeforaOS desktop"
 msgstr "Caméra photo pour l'environnement DeforaOS"
 
-#: ../tools/gallery.c:97
+#: ../tools/gallery.c:101
 #, c-format
 msgid "Usage: %s\n"
 msgstr "Usage: %s\n"
