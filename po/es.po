@@ -1,0 +1,226 @@
+# $Id$
+# Copyright (c) 2014 Pierre Pronchery <khorben@defora.org>
+# This file is distributed under the same license as the Camera package.
+# Pierre Pronchery <khorben@defora.org>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Camera 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-02-16 07:15+0100\n"
+"PO-Revision-Date: 2015-02-16 07:20+0100\n"
+"Last-Translator: Carolina Rocha <carolina@defora.org>\n"
+"Language-Team: Spanish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../src/camera.c:163
+msgid "Snapshot"
+msgstr ""
+
+#: ../src/camera.c:166
+msgid "Gallery"
+msgstr ""
+
+#: ../src/camera.c:170 ../src/camera.c:177 ../src/camera.c:723
+#: ../src/camera.c:734
+#, fuzzy
+msgid "Properties"
+msgstr "Propriedades"
+
+#: ../src/camera.c:173 ../src/camera.c:568
+#, fuzzy
+msgid "Preferences"
+msgstr "Preferencias"
+
+#: ../src/camera.c:561
+msgid "Nearest"
+msgstr ""
+
+#: ../src/camera.c:562
+msgid "Tiles"
+msgstr ""
+
+#: ../src/camera.c:563
+msgid "Bilinear"
+msgstr ""
+
+#: ../src/camera.c:564
+msgid "Hyperbolic"
+msgstr ""
+
+#: ../src/camera.c:584
+msgid "Flip _horizontally"
+msgstr ""
+
+#: ../src/camera.c:587
+msgid "Flip _vertically"
+msgstr ""
+
+#: ../src/camera.c:590
+msgid "Keep aspect _ratio"
+msgstr ""
+
+#: ../src/camera.c:598
+msgid "Interpolation: "
+msgstr ""
+
+#: ../src/camera.c:745
+msgid "Driver: "
+msgstr ""
+
+#: ../src/camera.c:749
+msgid "Card: "
+msgstr ""
+
+#: ../src/camera.c:753
+msgid "Bus info: "
+msgstr ""
+
+#: ../src/camera.c:757
+msgid "Version: "
+msgstr ""
+
+#: ../src/camera.c:770
+msgid "Capabilities: "
+msgstr ""
+
+#: ../src/camera.c:832 ../src/camera.c:835 ../src/camera.c:855
+#: ../src/camera.c:874 ../src/camera.c:899 ../src/camera.c:917
+#: ../src/camera.c:1023
+msgid "Could not save picture"
+msgstr ""
+
+#: ../src/camera.c:919
+msgid "Unknown error"
+msgstr ""
+
+#: ../src/camera.c:979 ../src/camera.c:983
+msgid "Error"
+msgstr ""
+
+#: ../src/camera.c:1172
+msgid "Could not open the video capture device"
+msgstr ""
+
+#: ../src/camera.c:1209
+msgid "Could not obtain the capabilities"
+msgstr ""
+
+#: ../src/camera.c:1213
+msgid "Not a video capture device"
+msgstr ""
+
+#: ../src/camera.c:1226
+msgid "Cropping not supported"
+msgstr ""
+
+#: ../src/camera.c:1231
+msgid "Could not obtain the video capture format"
+msgstr ""
+
+#: ../src/camera.c:1235
+msgid "Unsupported video capture type"
+msgstr ""
+
+#: ../src/camera.c:1246
+msgid "Unsupported capabilities"
+msgstr ""
+
+#: ../src/camera.c:1278
+msgid "Could not request buffers"
+msgstr ""
+
+#: ../src/camera.c:1281
+msgid "Could not obtain enough buffers"
+msgstr ""
+
+#: ../src/camera.c:1285
+msgid "Could not allocate buffers"
+msgstr ""
+
+#: ../src/camera.c:1301
+msgid "Could not setup buffers"
+msgstr ""
+
+#: ../src/camera.c:1307
+msgid "Could not map buffers"
+msgstr ""
+
+#: ../src/main.c:140
+#, c-format
+msgid ""
+"Usage: %s [-d device][-O filename][-HhRrVvx]\n"
+"  -d\tVideo device to open\n"
+"  -H\tFlip horizontally\n"
+"  -h\tDo not flip horizontally\n"
+"  -O\tUse this file as an overlay\n"
+"  -R\tPreserve the aspect ratio when scaling\n"
+"  -r\tDo not preserve the aspect ratio when scaling\n"
+"  -V\tFlip vertically\n"
+"  -v\tDo not flip vertically\n"
+"  -x\tStart in embedded mode\n"
+msgstr ""
+
+#: ../src/window.c:99
+msgid "Take _snapshot"
+msgstr ""
+
+#: ../src/window.c:102
+msgid "_Gallery"
+msgstr ""
+
+#: ../src/window.c:105
+#, fuzzy
+msgid "_Properties"
+msgstr "_Propriedades"
+
+#: ../src/window.c:108
+#, fuzzy
+msgid "_Close"
+msgstr "_Cerrar"
+
+#: ../src/window.c:115
+#, fuzzy
+msgid "_Preferences"
+msgstr "_Preferencias"
+
+#: ../src/window.c:122
+msgid "_Fullscreen"
+msgstr ""
+
+#: ../src/window.c:133
+msgid "_Contents"
+msgstr ""
+
+#: ../src/window.c:136 ../src/window.c:139
+msgid "_About"
+msgstr ""
+
+#: ../src/window.c:146
+msgid "_File"
+msgstr ""
+
+#: ../src/window.c:147
+msgid "_Edit"
+msgstr ""
+
+#: ../src/window.c:148
+msgid "_View"
+msgstr ""
+
+#: ../src/window.c:149
+#, fuzzy
+msgid "_Help"
+msgstr "_Ayuda"
+
+#: ../src/window.c:400
+msgid "Simple camera application for the DeforaOS desktop"
+msgstr ""
+
+#: ../tools/gallery.c:101
+#, c-format
+msgid "Usage: %s\n"
+msgstr ""
