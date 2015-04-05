@@ -497,7 +497,7 @@ int camera_save(Camera * camera)
 	if(config != NULL)
 		config_delete(config);
 	free(filename);
-	return 0;
+	return ret;
 }
 
 static int _save_variable_bool(Camera * camera, Config * config,
