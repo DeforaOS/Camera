@@ -32,6 +32,9 @@
 #ifndef PROGNAME
 # define PROGNAME	"gallery"
 #endif
+#ifndef BROWSER_PROGNAME
+# define BROWSER_PROGNAME	"browser"
+#endif
 #ifndef PREFIX
 # define PREFIX		"/usr/local"
 #endif
@@ -60,14 +63,14 @@ static int _usage(void);
 static int _gallery(void)
 {
 	char const * homedir;
-	char const browser[] = BINDIR "/browser";
+	char const browser[] = BINDIR "/" BROWSER_PROGNAME;
 	char const dcim[] = "DCIM";
 	char * path;
 #if GTK_CHECK_VERSION(2, 6, 0)
-	char * argv[] = { "browser", "-T", "--", NULL, NULL };
+	char * argv[] = { BROWSER_PROGNAME, "-T", "--", NULL, NULL };
 	const int arg = 3;
 #else
-	char * argv[] = { "browser", "--", NULL, NULL };
+	char * argv[] = { BROWSER_PROGNAME, "--", NULL, NULL };
 	const int arg = 2;
 #endif
 
