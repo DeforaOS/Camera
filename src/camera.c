@@ -873,15 +873,15 @@ static void _properties_window(Camera * camera)
 	vbox = dialog->vbox;
 #endif
 	/* driver */
-	snprintf(buf, sizeof(buf), "%16s", (char *)camera->cap.driver);
+	snprintf(buf, sizeof(buf), "%-16s", (char *)camera->cap.driver);
 	hbox = _properties_label(camera, group, _("Driver: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* card */
-	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.card);
+	snprintf(buf, sizeof(buf), "%-32s", (char *)camera->cap.card);
 	hbox = _properties_label(camera, group, _("Card: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* bus info */
-	snprintf(buf, sizeof(buf), "%32s", (char *)camera->cap.bus_info);
+	snprintf(buf, sizeof(buf), "%-32s", (char *)camera->cap.bus_info);
 	hbox = _properties_label(camera, group, _("Bus info: "), buf);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* version */
