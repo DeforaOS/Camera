@@ -180,10 +180,17 @@ CameraWindow * camerawindow_new(char const * device)
 	}
 	gtk_window_add_accel_group(GTK_WINDOW(camera->window), group);
 	g_object_unref(group);
-#if GTK_CHECK_VERSION(2, 6, 0)
+#ifndef EMBEDDED
+# if GTK_CHECK_VERSION(2, 6, 0)
+	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-web");
+# endif
+	gtk_window_set_title(GTK_WINDOW(camera->window), _("Webcam"));
+#else
+# if GTK_CHECK_VERSION(2, 6, 0)
 	gtk_window_set_icon_name(GTK_WINDOW(camera->window), "camera-photo");
+# endif
+	gtk_window_set_title(GTK_WINDOW(camera->window), _("Camera"));
 #endif
-	gtk_window_set_title(GTK_WINDOW(camera->window), "Camera");
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camerawindow_on_closex), camera);
 	g_signal_connect(camera->window, "window-state-event", G_CALLBACK(
@@ -397,8 +404,12 @@ static void _camerawindow_on_help_about(gpointer data)
 {
 	CameraWindow * camera = data;
 	GtkWidget * widget;
-	char const comments[] = N_("Simple camera application for the DeforaOS"
-			" desktop");
+	char const comments[] =
+#ifndef EMBEDDED
+		N_("Simple webcam application for the DeforaOS desktop");
+#else
+		N_("Simple camera application for the DeforaOS desktop");
+#endif
 
 	widget = desktop_about_dialog_new();
 	gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(
@@ -407,7 +418,11 @@ static void _camerawindow_on_help_about(gpointer data)
 	desktop_about_dialog_set_comments(widget, _(comments));
 	desktop_about_dialog_set_copyright(widget, _copyright);
 	desktop_about_dialog_set_license(widget, _license);
+#ifndef EMBEDDED
+	desktop_about_dialog_set_logo_icon_name(widget, "camera-web");
+#else
 	desktop_about_dialog_set_logo_icon_name(widget, "camera-photo");
+#endif
 	desktop_about_dialog_set_name(widget, PACKAGE);
 	desktop_about_dialog_set_version(widget, VERSION);
 	desktop_about_dialog_set_website(widget, "http://www.defora.org/");
