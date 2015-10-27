@@ -20,6 +20,9 @@
 #include <locale.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
+#if GTK_CHECK_VERSION(3, 0, 0)
+# include <gtk/gtkx.h>
+#endif
 #include <System.h>
 #include "camera.h"
 #include "window.h"
