@@ -813,7 +813,11 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 	hbox = gtk_hbox_new(FALSE, 4);
 #endif
 	widget = gtk_label_new(label);
+#if GTK_CHECK_VERSION(3, 0, 0)
+	gtk_widget_override_font(widget, camera->bold);
+#else
 	gtk_widget_modify_font(widget, camera->bold);
+#endif
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 	gtk_size_group_add_widget(group, widget);
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
