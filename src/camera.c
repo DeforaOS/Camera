@@ -233,11 +233,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->bold = pango_font_description_new();
 	pango_font_description_set_weight(camera->bold, PANGO_WEIGHT_BOLD);
 	camera->gc = gdk_gc_new(window->window); /* XXX */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	camera->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-#else
-	camera->widget = gtk_vbox_new(FALSE, 0);
-#endif
 	vbox = camera->widget;
 	/* toolbar */
 	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
@@ -666,11 +662,7 @@ static void _preferences_window(Camera * camera)
 				_preferences_on_response), camera);
 	notebook = gtk_notebook_new();
 	/* picture */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
-#else
-	vbox = gtk_vbox_new(FALSE, 4);
-#endif
 	camera->pr_hflip = gtk_check_button_new_with_mnemonic(
 			_("Flip _horizontally"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_hflip, FALSE, TRUE, 0);
@@ -681,11 +673,7 @@ static void _preferences_window(Camera * camera)
 			_("Keep aspect _ratio"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_ratio, FALSE, TRUE, 0);
 	/* interpolation */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	widget = gtk_hbox_new(FALSE, 4);
-#endif
 	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Interpolation: ")),
 			FALSE, TRUE, 0);
 	store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_STRING);
@@ -706,17 +694,9 @@ static void _preferences_window(Camera * camera)
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox,
 			gtk_label_new(_("Picture")));
 	/* snapshots */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
-#else
-	vbox = gtk_vbox_new(FALSE, 4);
-#endif
 	/* format */
-#if GTK_CHECK_VERSION(3, 0, 0)
 	widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	widget = gtk_hbox_new(FALSE, 4);
-#endif
 	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Format: ")),
 			FALSE, TRUE, 0);
 	store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_STRING);
@@ -807,11 +787,7 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 	GtkWidget * hbox;
 	GtkWidget * widget;
 
-#if GTK_CHECK_VERSION(3, 0, 0)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-#else
-	hbox = gtk_hbox_new(FALSE, 4);
-#endif
 	widget = gtk_label_new(label);
 #if GTK_CHECK_VERSION(3, 0, 0)
 	gtk_widget_override_font(widget, camera->bold);
