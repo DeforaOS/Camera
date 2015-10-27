@@ -133,6 +133,23 @@ struct _Camera
 };
 
 
+/* constants */
+typedef enum _CameraToolbar
+{
+	CT_SNAPSHOT = 0,
+	CT_SEPARATOR1,
+	CT_GALLERY,
+	CT_SEPARATOR2,
+#ifdef EMBEDDED
+	CT_PROPERTIES,
+	CT_SEPARATOR3,
+	CT_PREFERENCES
+#else
+	CT_PROPERTIES
+#endif
+} CameraToolbar;
+
+
 /* prototypes */
 /* accessors */
 static String * _camera_get_config_filename(Camera * camera, char const * name);
@@ -1217,11 +1234,14 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 		camera->fd = -1;
 		_camera_error(camera, error->message, 1);
 		g_error_free(error);
-		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget),
+		gtk_widget_set_sensitive(GTK_WIDGET(
+					_camera_toolbar[CT_SNAPSHOT].widget),
 				FALSE);
-		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget),
+		gtk_widget_set_sensitive(GTK_WIDGET(
+					_camera_toolbar[CT_GALLERY].widget),
 				FALSE);
-		gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[4].widget),
+		gtk_widget_set_sensitive(GTK_WIDGET(
+					_camera_toolbar[CT_PROPERTIES].widget),
 				FALSE);
 		camera->source = 0;
 		return FALSE;
