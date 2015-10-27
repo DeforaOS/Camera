@@ -108,14 +108,19 @@ struct _Camera
 	GtkWidget * widget;
 	GtkWidget * window;
 	PangoFontDescription * bold;
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	GdkGC * gc;
+#endif
 #if GTK_CHECK_VERSION(2, 18, 0)
 	GtkWidget * infobar;
 	GtkWidget * infobar_label;
 #endif
 	GtkWidget * area;
 	GtkAllocation area_allocation;
+	GdkPixbuf * pixbuf;
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	GdkPixmap * pixmap;
+#endif
 	/* preferences */
 	GtkWidget * pr_window;
 	GtkWidget * pr_hflip;
@@ -143,10 +148,17 @@ static gboolean _camera_on_can_mmap(GIOChannel * channel,
 		GIOCondition condition, gpointer data);
 static gboolean _camera_on_can_read(GIOChannel * channel,
 		GIOCondition condition, gpointer data);
+#if GTK_CHECK_VERSION(3, 0, 0)
+static gboolean _camera_on_drawing_area_draw(GtkWidget * widget, cairo_t * cr,
+		gpointer data);
+static void _camera_on_drawing_area_size_allocate(GtkWidget * widget,
+		GdkRectangle * allocation, gpointer data);
+#else
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
+#endif
 static void _camera_on_fullscreen(gpointer data);
 static void _camera_on_gallery(gpointer data);
 static gboolean _camera_on_open(gpointer data);
@@ -220,7 +232,9 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->widget = NULL;
 	camera->window = window;
 	camera->bold = NULL;
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	camera->gc = NULL;
+#endif
 	camera->pr_window = NULL;
 	camera->pp_window = NULL;
 	/* check for errors */
@@ -232,7 +246,9 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	/* create the window */
 	camera->bold = pango_font_description_new();
 	pango_font_description_set_weight(camera->bold, PANGO_WEIGHT_BOLD);
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	camera->gc = gdk_gc_new(window->window); /* XXX */
+#endif
 	camera->widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	vbox = camera->widget;
 	/* toolbar */
@@ -264,11 +280,21 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	gtk_box_pack_start(GTK_BOX(vbox), camera->infobar, FALSE, TRUE, 0);
 #endif
 	camera->area = gtk_drawing_area_new();
+	camera->pixbuf = NULL;
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	camera->pixmap = NULL;
+#endif
+#if GTK_CHECK_VERSION(3, 0, 0)
+	g_signal_connect(camera->area, "draw", G_CALLBACK(
+				_camera_on_drawing_area_draw), camera);
+	g_signal_connect(camera->area, "size-allocate", G_CALLBACK(
+				_camera_on_drawing_area_size_allocate), camera);
+#else
 	g_signal_connect(camera->area, "configure-event", G_CALLBACK(
 				_camera_on_drawing_area_configure), camera);
 	g_signal_connect(camera->area, "expose-event", G_CALLBACK(
 				_camera_on_drawing_area_expose), camera);
+#endif
 	gtk_box_pack_start(GTK_BOX(vbox), camera->area, TRUE, TRUE, 0);
 	gtk_widget_show_all(vbox);
 	camera_start(camera);
@@ -295,10 +321,14 @@ void camera_delete(Camera * camera)
 		g_io_channel_shutdown(camera->channel, TRUE, NULL);
 		g_io_channel_unref(camera->channel);
 	}
+	if(camera->pixbuf != NULL)
+		g_object_unref(camera->pixbuf);
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
 	if(camera->gc != NULL)
 		g_object_unref(camera->gc);
+#endif
 	if(camera->bold != NULL)
 		pango_font_description_free(camera->bold);
 	if(camera->fd >= 0)
@@ -1205,6 +1235,35 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 }
 
 
+#if GTK_CHECK_VERSION(3, 0, 0)
+/* camera_on_drawing_area_draw */
+static gboolean _camera_on_drawing_area_draw(GtkWidget * widget, cairo_t * cr,
+		gpointer data)
+{
+	Camera * camera = data;
+	(void) widget;
+
+	if(camera->pixbuf != NULL)
+	{
+		gdk_cairo_set_source_pixbuf(cr, camera->pixbuf, 0, 0);
+		cairo_paint(cr);
+	}
+	return TRUE;
+}
+
+
+/* camera_on_drawing_area_size_allocate */
+static void _camera_on_drawing_area_size_allocate(GtkWidget * widget,
+		GdkRectangle * allocation, gpointer data)
+{
+	Camera * camera = data;
+	(void) widget;
+
+	camera->area_allocation = *allocation;
+}
+
+#else
+
 /* camera_on_drawing_area_configure */
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data)
@@ -1243,6 +1302,7 @@ static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 			event->area.width, event->area.height);
 	return FALSE;
 }
+#endif
 
 
 /* camera_on_fullscreen */
@@ -1490,16 +1550,18 @@ static void _refresh_vflip(Camera * camera, GdkPixbuf ** pixbuf);
 static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	GtkAllocation * allocation = &camera->area_allocation;
+#endif
 	int width = camera->format.fmt.pix.width;
 	int height = camera->format.fmt.pix.height;
-	GdkPixbuf * pixbuf;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s() 0x%x\n", __func__,
 			camera->format.fmt.pix.pixelformat);
 #endif
 	_refresh_convert(camera);
+#if !GTK_CHECK_VERSION(3, 0, 0)
 	if(camera->hflip == FALSE
 			&& camera->vflip == FALSE
 			&& width == allocation->width
@@ -1510,19 +1572,23 @@ static gboolean _camera_on_refresh(gpointer data)
 				width, height, GDK_RGB_DITHER_NORMAL,
 				camera->rgb_buffer, width * 3);
 	else
+#endif
 	{
+		if(camera->pixbuf != NULL)
+			g_object_unref(camera->pixbuf);
 		/* render after scaling */
-		pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
+		camera->pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
 				width * 3, NULL, NULL);
-		_refresh_hflip(camera, &pixbuf);
-		_refresh_vflip(camera, &pixbuf);
-		_refresh_scale(camera, &pixbuf);
-		_refresh_overlays(camera, pixbuf);
-		gdk_pixbuf_render_to_drawable(pixbuf, camera->pixmap,
+		_refresh_hflip(camera, &camera->pixbuf);
+		_refresh_vflip(camera, &camera->pixbuf);
+		_refresh_scale(camera, &camera->pixbuf);
+		_refresh_overlays(camera, camera->pixbuf);
+#if !GTK_CHECK_VERSION(3, 0, 0)
+		gdk_pixbuf_render_to_drawable(camera->pixbuf, camera->pixmap,
 				camera->gc, 0, 0, 0, 0, -1, -1,
 				GDK_RGB_DITHER_NORMAL, 0, 0);
-		g_object_unref(pixbuf);
+#endif
 	}
 	/* force a refresh */
 	gtk_widget_queue_draw(camera->area);
