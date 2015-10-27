@@ -1525,9 +1525,7 @@ static gboolean _camera_on_refresh(gpointer data)
 		g_object_unref(pixbuf);
 	}
 	/* force a refresh */
-	gtk_widget_queue_draw_area(camera->area, 0, 0,
-			camera->area_allocation.width,
-			camera->area_allocation.height);
+	gtk_widget_queue_draw(camera->area);
 	camera->source = g_io_add_watch(camera->channel, G_IO_IN,
 			(camera->buffers != NULL) ? _camera_on_can_mmap
 			: _camera_on_can_read, camera);
