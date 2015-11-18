@@ -41,6 +41,8 @@ static void _camera_destroy(CameraWidget * camera);
 
 static GtkWidget * _camera_get_widget(CameraWidget * camera);
 
+static int _camera_set_property(CameraWidget * camera, va_list ap);
+
 
 /* public */
 /* variables */
@@ -55,7 +57,8 @@ DesktopWidgetDefinition widget =
 	NULL,
 	_camera_init,
 	_camera_destroy,
-	_camera_get_widget
+	_camera_get_widget,
+	_camera_set_property
 };
 
 
@@ -95,4 +98,30 @@ static void _camera_destroy(CameraWidget * camera)
 static GtkWidget * _camera_get_widget(CameraWidget * camera)
 {
 	return camera_get_widget(camera->camera);
+}
+
+
+/* camera_set_property */
+static int _camera_set_property(CameraWidget * camera, va_list ap)
+{
+	String const * property;
+	gboolean b;
+
+	while((property = va_arg(ap, String const *)) != NULL)
+		if(strcmp(property, "aspect-ratio") == 0)
+		{
+			b = va_arg(ap, gboolean);
+			camera_set_aspect_ratio(camera->camera, b);
+		}
+		else if(strcmp(property, "hflip") == 0)
+		{
+			b = va_arg(ap, gboolean);
+			camera_set_hflip(camera->camera, b);
+		}
+		else if(strcmp(property, "vflip") == 0)
+		{
+			b = va_arg(ap, gboolean);
+			camera_set_vflip(camera->camera, b);
+		}
+	return 0;
 }
