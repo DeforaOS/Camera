@@ -842,7 +842,7 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 	gtk_widget_modify_font(widget, camera->bold);
 #endif
 #if GTK_CHECK_VERSION(3, 0, 0)
-	g_object_set(widget, "halign", 0.0, NULL);
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 #endif
@@ -850,7 +850,7 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 	gtk_box_pack_start(GTK_BOX(hbox), widget, FALSE, TRUE, 0);
 	widget = gtk_label_new((value != NULL) ? value : "");
 #if GTK_CHECK_VERSION(3, 0, 0)
-	g_object_set(widget, "halign", 0.0, NULL);
+	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
 	gtk_misc_set_alignment(GTK_MISC(widget), 0.0, 0.5);
 #endif
