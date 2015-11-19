@@ -134,6 +134,8 @@ struct _Camera
 
 
 /* constants */
+#define VIDEO_DEVICE	"/dev/video0"
+
 typedef enum _CameraToolbar
 {
 	CT_SNAPSHOT = 0,
@@ -226,7 +228,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
 	camera->device = (device != NULL)
-		? string_new(device) : string_new("/dev/video0");
+		? string_new(device) : string_new(VIDEO_DEVICE);
 	camera->hflip = FALSE;
 	camera->vflip = FALSE;
 	camera->ratio = TRUE;
