@@ -1004,7 +1004,7 @@ static int _snapshot_dcim(Camera * camera, char const * homedir,
 		error_set_code(1, "%s: %s: %s", _("Could not save picture"),
 				path, strerror(errno));
 		free(path);
-		return -_camera_error(camera, error_get(), 1);
+		return -_camera_error(camera, error_get(NULL), 1);
 	}
 	free(path);
 	return 0;
@@ -1023,7 +1023,7 @@ static char * _snapshot_path(Camera * camera, char const * homedir,
 	{
 		error_set_code(1, "%s: %s", _("Could not save picture"),
 				strerror(errno));
-		_camera_error(camera, error_get(), 1);
+		_camera_error(camera, error_get(NULL), 1);
 		return NULL;
 	}
 	for(i = 0; i < 64; i++)
@@ -1090,7 +1090,7 @@ static int _snapshot_save(Camera * camera, char const * path,
 				(error != NULL) ? error->message
 				: _("Unknown error"));
 		g_error_free(error);
-		return -_camera_error(camera, error_get(), 1);
+		return -_camera_error(camera, error_get(NULL), 1);
 	}
 	return 0;
 }
@@ -1376,12 +1376,12 @@ static gboolean _camera_on_open(gpointer data)
 		error_set_code(1, "%s: %s (%s)", camera->device,
 				_("Could not open the video capture device"),
 				strerror(errno));
-		_camera_error(camera, error_get(), 1);
+		_camera_error(camera, error_get(NULL), 1);
 		return FALSE;
 	}
 	if(_open_setup(camera) != 0)
 	{
-		_camera_error(camera, error_get(), 1);
+		_camera_error(camera, error_get(NULL), 1);
 		close(camera->fd);
 		camera->fd = -1;
 		/* FIXME also free camera->buffers */
