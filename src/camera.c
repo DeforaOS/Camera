@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #ifdef __NetBSD__
 # include <sys/videoio.h>
+# include <paths.h>
 #else
 # include <linux/videodev2.h>
 #endif
@@ -134,7 +135,11 @@ struct _Camera
 
 
 /* constants */
-#define VIDEO_DEVICE	"/dev/video0"
+#ifdef _PATH_VIDEO0
+# define VIDEO_DEVICE	_PATH_VIDEO0
+#else
+# define VIDEO_DEVICE	"/dev/video0"
+#endif
 
 typedef enum _CameraToolbar
 {
