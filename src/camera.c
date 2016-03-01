@@ -717,6 +717,7 @@ static void _preferences_window(Camera * camera)
 	notebook = gtk_notebook_new();
 	/* picture */
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	camera->pr_hflip = gtk_check_button_new_with_mnemonic(
 			_("Flip _horizontally"));
 	gtk_box_pack_start(GTK_BOX(vbox), camera->pr_hflip, FALSE, TRUE, 0);
@@ -749,6 +750,7 @@ static void _preferences_window(Camera * camera)
 			gtk_label_new(_("Picture")));
 	/* snapshots */
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 4);
 	/* format */
 	widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	gtk_box_pack_start(GTK_BOX(widget), gtk_label_new(_("Format: ")),
