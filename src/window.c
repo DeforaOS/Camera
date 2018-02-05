@@ -307,6 +307,8 @@ static gboolean _camerawindow_on_closex(gpointer data)
 /* camerawindow_on_contents */
 static void _camerawindow_on_contents(gpointer data)
 {
+	(void) data;
+
 	desktop_help_contents(PACKAGE, PROGNAME);
 }
 
@@ -326,6 +328,7 @@ static gboolean _camerawindow_on_window_state(GtkWidget * widget,
 {
 	CameraWindow * camera = data;
 	GdkEventWindowState * gews;
+	(void) widget;
 
 	if(event->type == GDK_WINDOW_STATE)
 	{
