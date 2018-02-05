@@ -1128,6 +1128,7 @@ void camera_stop(Camera * camera)
 static String * _camera_get_config_filename(Camera * camera, char const * name)
 {
 	char const * homedir;
+	(void) camera;
 
 	if((homedir = getenv("HOME")) == NULL)
 		homedir = g_get_home_dir();
@@ -1297,6 +1298,8 @@ static void _camera_on_drawing_area_size_allocate(GtkWidget * widget,
 static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
 		GdkEventConfigure * event, gpointer data)
 {
+	(void) event;
+
 	/* XXX this code is inspired from GQcam */
 	Camera * camera = data;
 	GtkAllocation * allocation = &camera->area_allocation;
