@@ -783,11 +783,7 @@ static void _preferences_window(Camera * camera)
 	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, TRUE, 0);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox,
 			gtk_label_new(_("Snapshots")));
-#if GTK_CHECK_VERSION(2, 14, 0)
 	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-#else
-	vbox = dialog->vbox;
-#endif
 	gtk_box_set_spacing(GTK_BOX(vbox), 4);
 	gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 	gtk_widget_show_all(vbox);
@@ -855,11 +851,7 @@ static GtkWidget * _properties_label(Camera * camera, GtkSizeGroup * group,
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 	widget = gtk_label_new(label);
-#if GTK_CHECK_VERSION(3, 0, 0)
 	gtk_widget_override_font(widget, camera->bold);
-#else
-	gtk_widget_modify_font(widget, camera->bold);
-#endif
 #if GTK_CHECK_VERSION(3, 0, 0)
 	g_object_set(widget, "halign", GTK_ALIGN_START, NULL);
 #else
@@ -919,11 +911,7 @@ static void _properties_window(Camera * camera)
 	g_signal_connect_swapped(dialog, "response", G_CALLBACK(
 				_properties_on_response), camera);
 	group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
-#if GTK_CHECK_VERSION(2, 14, 0)
 	vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-#else
-	vbox = dialog->vbox;
-#endif
 	/* driver */
 	snprintf(buf, sizeof(buf), "%-16s", (char *)camera->cap.driver);
 	hbox = _properties_label(camera, group, _("Driver: "), buf);
