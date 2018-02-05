@@ -1344,11 +1344,7 @@ static void _camera_on_fullscreen(gpointer data)
 	GdkWindow * window;
 	GdkWindowState state;
 
-#if GTK_CHECK_VERSION(2, 14, 0)
 	window = gtk_widget_get_window(camera->window);
-#else
-	window = camera->window->window;
-#endif
 	state = gdk_window_get_state(window);
 	if(state & GDK_WINDOW_STATE_FULLSCREEN)
 		gtk_window_unfullscreen(GTK_WINDOW(camera->window));
