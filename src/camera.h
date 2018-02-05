@@ -46,6 +46,7 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 void camera_delete(Camera * camera);
 
 /* accessors */
+char const * camera_get_device(Camera * camera);
 GtkWidget * camera_get_widget(Camera * camera);
 
 void camera_set_aspect_ratio(Camera * camera, gboolean ratio);

@@ -374,6 +374,13 @@ void camera_delete(Camera * camera)
 
 
 /* accessors */
+/* camera_get_device */
+char const * camera_get_device(Camera * camera)
+{
+	return camera->device;
+}
+
+
 /* camera_get_widget */
 GtkWidget * camera_get_widget(Camera * camera)
 {
