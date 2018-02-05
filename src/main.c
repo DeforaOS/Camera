@@ -29,19 +29,18 @@
 #include "../config.h"
 #define _(string) gettext(string)
 
-
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"camera"
+#ifndef PROGNAME_CAMERA
+# define PROGNAME_CAMERA	"camera"
 #endif
 #ifndef PREFIX
-# define PREFIX		"/usr/local"
+# define PREFIX			"/usr/local"
 #endif
 #ifndef DATADIR
-# define DATADIR	PREFIX "/share"
+# define DATADIR		PREFIX "/share"
 #endif
 #ifndef LOCALEDIR
-# define LOCALEDIR	DATADIR "/locale"
+# define LOCALEDIR		DATADIR "/locale"
 #endif
 
 
@@ -131,7 +130,7 @@ static void _embedded_on_embedded(gpointer data)
 /* error */
 static int _error(char const * message, int ret)
 {
-	fputs(PROGNAME ": ", stderr);
+	fputs(PROGNAME_CAMERA ": ", stderr);
 	perror(message);
 	return ret;
 }
@@ -149,7 +148,7 @@ static int _usage(void)
 "  -r	Do not preserve the aspect ratio when scaling\n"
 "  -V	Flip vertically\n"
 "  -v	Do not flip vertically\n"
-"  -x	Start in embedded mode\n"), PROGNAME);
+"  -x	Start in embedded mode\n"), PROGNAME_CAMERA);
 	return 1;
 }
 

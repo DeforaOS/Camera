@@ -44,14 +44,17 @@
 #define N_(string) (string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"camera"
+#ifndef PROGNAME_CAMERA
+# define PROGNAME_CAMERA	"camera"
+#endif
+#ifndef PROGNAME_GALLERY
+# define PROGNAME_GALLERY	"gallery"
 #endif
 #ifndef PREFIX
-# define PREFIX		"/usr/local"
+# define PREFIX			"/usr/local"
 #endif
 #ifndef BINDIR
-# define BINDIR		PREFIX "/bin"
+# define BINDIR			PREFIX "/bin"
 #endif
 
 /* macros */
@@ -492,7 +495,7 @@ char const * _load_variable(Camera * camera, Config * config,
 /* camera_open_gallery */
 void camera_open_gallery(Camera * camera)
 {
-	char * argv[] = { BINDIR "/gallery", "gallery", NULL };
+	char * argv[] = { BINDIR "/" PROGNAME_GALLERY, PROGNAME_GALLERY, NULL };
 	const GSpawnFlags flags = G_SPAWN_FILE_AND_ARGV_ZERO;
 	GError * error = NULL;
 
@@ -1169,7 +1172,7 @@ static int _camera_error(Camera * camera, char const * message, int ret)
 
 static int _error_text(char const * message, int ret)
 {
-	fprintf(stderr, "%s: %s\n", PROGNAME, message);
+	fprintf(stderr, "%s: %s\n", PROGNAME_CAMERA, message);
 	return ret;
 }
 

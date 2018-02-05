@@ -29,23 +29,23 @@
 #define _(string) gettext(string)
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"gallery"
+#ifndef PROGNAME_GALLERY
+# define PROGNAME_GALLERY	"gallery"
 #endif
 #ifndef BROWSER_PROGNAME
 # define BROWSER_PROGNAME	"browser"
 #endif
 #ifndef PREFIX
-# define PREFIX		"/usr/local"
+# define PREFIX			"/usr/local"
 #endif
 #ifndef BINDIR
-# define BINDIR		PREFIX "/bin"
+# define BINDIR			PREFIX "/bin"
 #endif
 #ifndef DATADIR
-# define DATADIR	PREFIX "/share"
+# define DATADIR		PREFIX "/share"
 #endif
 #ifndef LOCALEDIR
-# define LOCALEDIR	DATADIR "/locale"
+# define LOCALEDIR		DATADIR "/locale"
 #endif
 
 
@@ -91,7 +91,7 @@ static int _gallery(void)
 /* error */
 static int _error(char const * message, int ret)
 {
-	fprintf(stderr, "%s: %s%s%s\n", PROGNAME,
+	fprintf(stderr, "%s: %s%s%s\n", PROGNAME_GALLERY,
 			(message != NULL) ? message : "",
 			(message != NULL) ? ": " : "", strerror(errno));
 	return ret;
@@ -101,7 +101,7 @@ static int _error(char const * message, int ret)
 /* usage */
 static int _usage(void)
 {
-	fprintf(stderr, _("Usage: %s\n"), PROGNAME);
+	fprintf(stderr, _("Usage: %s\n"), PROGNAME_GALLERY);
 	return 1;
 }
 

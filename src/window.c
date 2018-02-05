@@ -30,8 +30,8 @@ static char const _license[] =
 #define N_(string) string
 
 /* constants */
-#ifndef PROGNAME
-# define PROGNAME	"camera"
+#ifndef PROGNAME_CAMERA
+# define PROGNAME_CAMERA	"camera"
 #endif
 
 
@@ -309,7 +309,7 @@ static void _camerawindow_on_contents(gpointer data)
 {
 	(void) data;
 
-	desktop_help_contents(PACKAGE, PROGNAME);
+	desktop_help_contents(PACKAGE, PROGNAME_CAMERA);
 }
 
 
