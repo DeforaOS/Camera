@@ -68,6 +68,7 @@ DesktopWidgetDefinition widget =
 static CameraWidget * _camera_init(char const * name)
 {
 	CameraWidget * camera;
+	(void) name;
 
 	if((camera = object_new(sizeof(*camera))) == NULL)
 		return NULL;
