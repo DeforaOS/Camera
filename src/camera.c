@@ -332,42 +332,9 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 /* camera_delete */
 void camera_delete(Camera * camera)
 {
-	size_t i;
-
 	camera_stop(camera);
-	if(camera->pp_window != NULL)
-		gtk_widget_destroy(camera->pp_window);
-	if(camera->pr_window != NULL)
-		gtk_widget_destroy(camera->pr_window);
-	for(i = 0; i < camera->overlays_cnt; i++)
-		cameraoverlay_delete(camera->overlays[i]);
-	free(camera->overlays);
-	if(camera->channel != NULL)
-	{
-		/* XXX we ignore errors at this point */
-		g_io_channel_shutdown(camera->channel, TRUE, NULL);
-		g_io_channel_unref(camera->channel);
-	}
-	if(camera->pixbuf != NULL)
-		g_object_unref(camera->pixbuf);
-#if !GTK_CHECK_VERSION(3, 0, 0)
-	if(camera->pixmap != NULL)
-		g_object_unref(camera->pixmap);
-	if(camera->gc != NULL)
-		g_object_unref(camera->gc);
-#endif
 	if(camera->bold != NULL)
 		pango_font_description_free(camera->bold);
-	if(camera->fd >= 0)
-		close(camera->fd);
-	if((char *)camera->rgb_buffer != camera->raw_buffer)
-		free(camera->rgb_buffer);
-	for(i = 0; i < camera->buffers_cnt; i++)
-		if(camera->buffers[i].start != MAP_FAILED)
-			munmap(camera->buffers[i].start,
-					camera->buffers[i].length);
-	free(camera->buffers);
-	free(camera->raw_buffer);
 	string_delete(camera->device);
 	object_delete(camera);
 }
@@ -1128,9 +1095,52 @@ void camera_start(Camera * camera)
 /* camera_stop */
 void camera_stop(Camera * camera)
 {
+	size_t i;
+
 	if(camera->source != 0)
 		g_source_remove(camera->source);
 	camera->source = 0;
+	if(camera->pp_window != NULL)
+		gtk_widget_destroy(camera->pp_window);
+	camera->pp_window = NULL;
+	if(camera->pr_window != NULL)
+		gtk_widget_destroy(camera->pr_window);
+	camera->pr_window = NULL;
+	for(i = 0; i < camera->overlays_cnt; i++)
+		cameraoverlay_delete(camera->overlays[i]);
+	free(camera->overlays);
+	camera->overlays = NULL;
+	camera->overlays_cnt = 0;
+	if(camera->channel != NULL)
+	{
+		/* XXX we ignore errors at this point */
+		g_io_channel_shutdown(camera->channel, TRUE, NULL);
+		g_io_channel_unref(camera->channel);
+	}
+	camera->channel = NULL;
+	if(camera->pixbuf != NULL)
+		g_object_unref(camera->pixbuf);
+	camera->pixbuf = NULL;
+#if !GTK_CHECK_VERSION(3, 0, 0)
+	if(camera->pixmap != NULL)
+		g_object_unref(camera->pixmap);
+	camera->pixmap = NULL;
+	if(camera->gc != NULL)
+		g_object_unref(camera->gc);
+	camera->gc = NULL;
+#endif
+	if((char *)camera->rgb_buffer != camera->raw_buffer)
+		free(camera->rgb_buffer);
+	camera->rgb_buffer = NULL;
+	for(i = 0; i < camera->buffers_cnt; i++)
+		if(camera->buffers[i].start != MAP_FAILED)
+			munmap(camera->buffers[i].start,
+					camera->buffers[i].length);
+	free(camera->buffers);
+	camera->buffers = NULL;
+	camera->buffers_cnt = 0;
+	free(camera->raw_buffer);
+	camera->raw_buffer = NULL;
 }
 
 
