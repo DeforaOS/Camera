@@ -280,9 +280,13 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	vbox = camera->widget;
 	/* toolbar */
 	widget = desktop_toolbar_create(_camera_toolbar, camera, group);
-	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), FALSE);
-	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), FALSE);
-	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[4].widget), FALSE);
+	gtk_widget_set_sensitive(
+			GTK_WIDGET(_camera_toolbar[CT_SNAPSHOT].widget), FALSE);
+	gtk_widget_set_sensitive(
+			GTK_WIDGET(_camera_toolbar[CT_GALLERY].widget), FALSE);
+	gtk_widget_set_sensitive(
+			GTK_WIDGET(_camera_toolbar[CT_PROPERTIES].widget),
+			FALSE);
 	toolitem = gtk_tool_button_new_from_stock(GTK_STOCK_FULLSCREEN);
 	g_signal_connect_swapped(toolitem, "clicked", G_CALLBACK(
 				_camera_on_fullscreen), camera);
@@ -1430,9 +1434,13 @@ static gboolean _camera_on_open(gpointer data)
 			camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
 #endif
-	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[0].widget), TRUE);
-	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[2].widget), TRUE);
-	gtk_widget_set_sensitive(GTK_WIDGET(_camera_toolbar[4].widget), TRUE);
+	gtk_widget_set_sensitive(
+			GTK_WIDGET(_camera_toolbar[CT_SNAPSHOT].widget), TRUE);
+	gtk_widget_set_sensitive(
+			GTK_WIDGET(_camera_toolbar[CT_GALLERY].widget), TRUE);
+	gtk_widget_set_sensitive(
+			GTK_WIDGET(_camera_toolbar[CT_PROPERTIES].widget),
+			TRUE);
 	/* FIXME allow the window to be smaller */
 	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
 			camera->format.fmt.pix.height);
