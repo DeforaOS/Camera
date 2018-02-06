@@ -988,8 +988,8 @@ static int _snapshot_dcim(Camera * camera, char const * homedir,
 		return -_camera_error(camera, _("Could not save picture"), 1);
 	if(mkdir(path, 0777) != 0 && errno != EEXIST)
 	{
-		error_set_code(1, "%s: %s: %s", _("Could not save picture"),
-				path, strerror(errno));
+		error_set_code(-errno, "%s: %s: %s",
+				_("Could not save picture"), path, strerror(errno));
 		free(path);
 		return -_camera_error(camera, error_get(NULL), 1);
 	}
@@ -1008,7 +1008,7 @@ static char * _snapshot_path(Camera * camera, char const * homedir,
 
 	if(gettimeofday(&tv, NULL) != 0 || gmtime_r(&tv.tv_sec, &tm) == NULL)
 	{
-		error_set_code(1, "%s: %s", _("Could not save picture"),
+		error_set_code(-errno, "%s: %s", _("Could not save picture"),
 				strerror(errno));
 		_camera_error(camera, error_get(NULL), 1);
 		return NULL;
@@ -1402,7 +1402,7 @@ static gboolean _camera_on_open(gpointer data)
 	camera->source = 0;
 	if((camera->fd = open(camera->device, O_RDWR)) < 0)
 	{
-		error_set_code(1, "%s: %s (%s)", camera->device,
+		error_set_code(-errno, "%s: %s (%s)", camera->device,
 				_("Could not open the video capture device"),
 				strerror(errno));
 		_camera_error(camera, error_get(NULL), 1);
@@ -1439,7 +1439,7 @@ static int _open_setup(Camera * camera)
 
 	/* check for capabilities */
 	if(_camera_ioctl(camera, VIDIOC_QUERYCAP, &camera->cap) == -1)
-		return -error_set_code(1, "%s: %s (%s)", camera->device,
+		return error_set_code(-errno, "%s: %s (%s)", camera->device,
 				_("Could not obtain the capabilities"),
 				strerror(errno));
 	if((camera->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0)
@@ -1554,14 +1554,14 @@ static int _open_setup_read(Camera * camera)
 	/* allocate the raw buffer */
 	cnt = camera->format.fmt.pix.sizeimage;
 	if((p = realloc(camera->raw_buffer, cnt)) == NULL)
-		return -error_set_code(1, "%s: %s", camera->device,
+		return error_set_code(-errno, "%s: %s", camera->device,
 				strerror(errno));
 	camera->raw_buffer = p;
 	camera->raw_buffer_cnt = cnt;
 	/* allocate the rgb buffer */
 	cnt = camera->format.fmt.pix.width * camera->format.fmt.pix.height * 3;
 	if((p = realloc(camera->rgb_buffer, cnt)) == NULL)
-		return -error_set_code(1, "%s: %s", camera->device,
+		return error_set_code(-errno, "%s: %s", camera->device,
 				strerror(errno));
 	camera->rgb_buffer = (unsigned char *)p;
 	camera->rgb_buffer_cnt = cnt;
