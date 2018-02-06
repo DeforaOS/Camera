@@ -1512,6 +1512,9 @@ static int _open_setup_mmap(Camera * camera)
 	size_t i;
 	struct v4l2_buffer buf;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	/* memory mapping support */
 	req.count = 4;
 	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -1559,6 +1562,9 @@ static int _open_setup_read(Camera * camera)
 	size_t cnt;
 	char * p;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	/* FIXME also try to obtain a RGB24 format if possible */
 	/* allocate the raw buffer */
 	cnt = camera->format.fmt.pix.sizeimage;
