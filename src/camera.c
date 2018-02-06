@@ -1219,6 +1219,9 @@ static gboolean _camera_on_can_mmap(GIOChannel * channel,
 	Camera * camera = data;
 	struct v4l2_buffer buf;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	if(channel != camera->channel || condition != G_IO_IN)
 		return FALSE;
 	if(_camera_ioctl(camera, VIDIOC_DQBUF, &buf) == -1)
@@ -1296,6 +1299,9 @@ static gboolean _camera_on_drawing_area_draw(GtkWidget * widget, cairo_t * cr,
 	Camera * camera = data;
 	(void) widget;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %p\n", __func__, camera->pixbuf);
+#endif
 	if(camera->pixbuf != NULL)
 	{
 		gdk_cairo_set_source_pixbuf(cr, camera->pixbuf, 0, 0);
@@ -1312,6 +1318,9 @@ static void _camera_on_drawing_area_size_allocate(GtkWidget * widget,
 	Camera * camera = data;
 	(void) widget;
 
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
+#endif
 	camera->area_allocation = *allocation;
 }
 
