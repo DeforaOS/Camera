@@ -395,6 +395,21 @@ void camera_set_aspect_ratio(Camera * camera, gboolean ratio)
 }
 
 
+/* camera_set_device */
+int camera_set_device(Camera * camera, char const * device)
+{
+	String * p;
+
+	if((p = string_new(device)) == NULL)
+		return -1;
+	camera_stop(camera);
+	string_delete(camera->device);
+	camera->device = p;
+	camera_start(camera);
+	return 0;
+}
+
+
 /* camera_set_hflip */
 void camera_set_hflip(Camera * camera, gboolean flip)
 {

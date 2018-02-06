@@ -50,6 +50,7 @@ char const * camera_get_device(Camera * camera);
 GtkWidget * camera_get_widget(Camera * camera);
 
 void camera_set_aspect_ratio(Camera * camera, gboolean ratio);
+int camera_set_device(Camera * camera, char const * device);
 void camera_set_hflip(Camera * camera, gboolean flip);
 void camera_set_vflip(Camera * camera, gboolean flip);
 
