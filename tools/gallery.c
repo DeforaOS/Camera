@@ -29,11 +29,11 @@
 #define _(string) gettext(string)
 
 /* constants */
+#ifndef PROGNAME_BROWSER
+# define PROGNAME_BROWSER	"browser"
+#endif
 #ifndef PROGNAME_GALLERY
 # define PROGNAME_GALLERY	"gallery"
-#endif
-#ifndef BROWSER_PROGNAME
-# define BROWSER_PROGNAME	"browser"
 #endif
 #ifndef PREFIX
 # define PREFIX			"/usr/local"
@@ -63,14 +63,14 @@ static int _usage(void);
 static int _gallery(void)
 {
 	char const * homedir;
-	char const browser[] = BINDIR "/" BROWSER_PROGNAME;
+	char const browser[] = BINDIR "/" PROGNAME_BROWSER;
 	char const dcim[] = "DCIM";
 	char * path;
 #if GTK_CHECK_VERSION(2, 6, 0)
-	char * argv[] = { BROWSER_PROGNAME, "-T", "--", NULL, NULL };
+	char * argv[] = { PROGNAME_BROWSER, "-T", "--", NULL, NULL };
 	const int arg = 3;
 #else
-	char * argv[] = { BROWSER_PROGNAME, "--", NULL, NULL };
+	char * argv[] = { PROGNAME_BROWSER, "--", NULL, NULL };
 	const int arg = 2;
 #endif
 
