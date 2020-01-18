@@ -207,15 +207,15 @@ static DesktopToolbar _camera_toolbar[] =
 		0, NULL },
 #ifdef EMBEDDED
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Properties"), G_CALLBACK(_camera_on_properties),
-		GTK_STOCK_PROPERTIES, GDK_MOD1_MASK, GDK_KEY_Return, NULL },
+	{ N_("Properties"), G_CALLBACK(_camera_on_properties), "gtk-properties",
+		GDK_MOD1_MASK, GDK_KEY_Return, NULL },
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ N_("Preferences"), G_CALLBACK(_camera_on_preferences),
-		GTK_STOCK_PREFERENCES, GDK_CONTROL_MASK, GDK_KEY_P, NULL },
+		"gtk-preferences", GDK_CONTROL_MASK, GDK_KEY_P, NULL },
 #else
 	{ "", NULL, NULL, 0, 0, NULL },
-	{ N_("Properties"), G_CALLBACK(_camera_on_properties),
-		GTK_STOCK_PROPERTIES, 0, 0, NULL },
+	{ N_("Properties"), G_CALLBACK(_camera_on_properties), "gtk-properties",
+		0, 0, NULL },
 #endif
 	{ "", NULL, NULL, 0, 0, NULL },
 	{ NULL, NULL, NULL, 0, 0, NULL }
@@ -287,7 +287,10 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	gtk_widget_set_sensitive(
 			GTK_WIDGET(_camera_toolbar[CT_PROPERTIES].widget),
 			FALSE);
-	toolitem = gtk_tool_button_new_from_stock(GTK_STOCK_FULLSCREEN);
+	toolitem = gtk_tool_button_new(
+			gtk_image_new_from_icon_name("gtk-fullscreen",
+				GTK_ICON_SIZE_LARGE_TOOLBAR),
+			_("Fullscreen"));
 	g_signal_connect_swapped(toolitem, "clicked", G_CALLBACK(
 				_camera_on_fullscreen), camera);
 	gtk_toolbar_insert(GTK_TOOLBAR(widget), toolitem, -1);
@@ -890,7 +893,7 @@ static void _properties_window(Camera * camera)
 	camera->pp_window = dialog;
 #if GTK_CHECK_VERSION(2, 10, 0)
 	gtk_message_dialog_set_image(GTK_MESSAGE_DIALOG(dialog),
-			gtk_image_new_from_stock(GTK_STOCK_PROPERTIES,
+			gtk_image_new_from_icon_name("gtk-preferences",
 				GTK_ICON_SIZE_DIALOG));
 #endif
 	gtk_window_set_title(GTK_WINDOW(dialog), _("Properties"));
