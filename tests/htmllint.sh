@@ -1,6 +1,6 @@
 #!/bin/sh
 #$Id$
-#Copyright (c) 2014-2017 Pierre Pronchery <khorben@defora.org>
+#Copyright (c) 2014-2020 Pierre Pronchery <khorben@defora.org>
 #
 #Redistribution and use in source and binary forms, with or without
 #modification, are permitted provided that the following conditions are met:
@@ -25,6 +25,7 @@
 
 
 #variables
+CONFIGSH="${0%/htmllint.sh}/../config.sh"
 DEVNULL="/dev/null"
 PROGNAME="htmllint.sh"
 PROJECTCONF="../project.conf"
@@ -32,16 +33,19 @@ PROJECTCONF="../project.conf"
 DATE="date"
 DEBUG="_debug"
 FIND="find"
-HTMLLINT="xmllint --html"
+HTMLLINT="xmllint --html --nonet"
+MKDIR="mkdir -p"
 SORT="sort -n"
 TR="tr"
+
+[ -f "$CONFIGSH" ] && . "$CONFIGSH"
 
 
 #functions
 #htmllint
 _htmllint()
 {
-	ret=0
+	res=0
 
 	$DATE
 	echo
@@ -58,17 +62,17 @@ _htmllint()
 	done < "$PROJECTCONF"
 	for subdir in $subdirs; do
 		[ -d "../$subdir" ] || continue
-		for filename in $($FIND "../$subdir" -iname '*.html' -o -iname '*.htm' | $SORT); do
+		for filename in $($FIND "../$subdir" -type f -a \( -iname '*.html' -o -iname '*.htm' \) | $SORT); do
 			$DEBUG $HTMLLINT "$filename" 2>&1 > "$DEVNULL"
 			if [ $? -eq 0 ]; then
 				echo "$filename:"
 			else
 				echo "$PROGNAME: $filename: FAIL" 1>&2
-				ret=2
+				res=2
 			fi
 		done
 	done
-	return $ret
+	return $res
 }
 
 
@@ -121,9 +125,15 @@ fi
 [ $clean -ne 0 ] && exit 0
 
 exec 3>&1
+ret=0
 while [ $# -gt 0 ]; do
 	target="$1"
+	dirname="${target%/*}"
 	shift
 
-	_htmllint > "$target"					|| exit 2
+	if [ -n "$dirname" -a "$dirname" != "$target" ]; then
+		$MKDIR -- "$dirname"				|| ret=$?
+	fi
+	_htmllint > "$target"					|| ret=$?
 done
+exit $ret
