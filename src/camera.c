@@ -932,9 +932,9 @@ static void _properties_window(Camera * camera)
 	for(i = 0; capabilities[i].name != NULL; i++)
 		if(camera->cap.capabilities & capabilities[i].capability)
 		{
-			strncat(buf, sep, sizeof(buf) - strlen(buf));
+			strncat(buf, sep, sizeof(buf) - strlen(buf) - 1);
 			strncat(buf, capabilities[i].name, sizeof(buf)
-					- strlen(buf));
+					- strlen(buf) - 1);
 			sep = ", ";
 		}
 	buf[sizeof(buf) - 1] = '\0';
