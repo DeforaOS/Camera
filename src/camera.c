@@ -1006,7 +1006,8 @@ static int _snapshot_dcim(Camera * camera, char const * homedir,
 	if(mkdir(path, 0777) != 0 && errno != EEXIST)
 	{
 		error_set_code(-errno, "%s: %s: %s",
-				_("Could not save picture"), path, strerror(errno));
+				_("Could not save picture"), path,
+				strerror(errno));
 		free(path);
 		return -_camera_error(camera, error_get(NULL), 1);
 	}
