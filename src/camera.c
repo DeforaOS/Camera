@@ -1490,10 +1490,11 @@ static int _open_setup(Camera * camera)
 					_("Cropping not supported"));
 	}
 	/* obtain the current format */
+	camera->format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if(_camera_ioctl(camera, VIDIOC_G_FMT, &camera->format) == -1)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Could not obtain the video capture format"));
-	/* check the current format */
+	/* verify the current format */
 	if(camera->format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Unsupported video capture type"));
