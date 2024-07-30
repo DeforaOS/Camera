@@ -30,8 +30,10 @@
 #include <locale.h>
 #include <libintl.h>
 #include <gtk/gtk.h>
-#if GTK_CHECK_VERSION(3, 0, 0)
-# include <gtk/gtkx.h>
+#if defined(GDK_WINDOWING_X11)
+# if GTK_CHECK_VERSION(3, 0, 0)
+#  include <gtk/gtkx.h>
+# endif
 #endif
 #include <System.h>
 #include "camera.h"
@@ -67,7 +69,9 @@ static int _usage(void);
 /* camera */
 static int _camera_embedded(char const * device, int hflip, int vflip,
 		int ratio, char const * overlay);
+#if defined(GDK_WINDOWING_X11)
 static void _embedded_on_embedded(gpointer data);
+#endif
 
 static int _camera(int embedded, char const * device, int hflip, int vflip,
 		int ratio, char const * overlay)
@@ -95,6 +99,16 @@ static int _camera(int embedded, char const * device, int hflip, int vflip,
 static int _camera_embedded(char const * device, int hflip, int vflip,
 		int ratio, char const * overlay)
 {
+#if !defined(GDK_WINDOWING_X11)
+	(void) device;
+	(void) hflip;
+	(void) vflip;
+	(void) ratio;
+	(void) overlay;
+
+	error_set_code(-ENOSYS, "%s", strerror(ENOSYS));
+	return -1;
+#else
 	GtkWidget * window;
 	GtkWidget * widget;
 	Camera * camera;
@@ -127,14 +141,17 @@ static int _camera_embedded(char const * device, int hflip, int vflip,
 	camera_delete(camera);
 	gtk_widget_destroy(window);
 	return 0;
+#endif
 }
 
+#if defined(GDK_WINDOWING_X11)
 static void _embedded_on_embedded(gpointer data)
 {
 	GtkWidget * widget = data;
 
 	gtk_widget_show(widget);
 }
+#endif
 
 
 /* error */
