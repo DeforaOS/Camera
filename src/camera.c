@@ -1496,9 +1496,9 @@ static int _open_setup(Camera * camera)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Could not obtain the video capture format"));
 	/* try to set a specific format */
-	if(camera->format.fmt.pixelformat != V4L2_PIX_FMT_YUYV)
+	if(camera->format.fmt.pix.pixelformat != V4L2_PIX_FMT_YUYV)
 	{
-		camera->format.fmt.pixelformat = V4L2_PIX_FMT_YUYV;
+		camera->format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 		if(_camera_ioctl(camera, VIDIOC_S_FMT, &camera->format) == -1)
 			return -error_set_code(1, "%s: %s", camera->device,
 					_("Could not set the video capture format"));
