@@ -882,20 +882,44 @@ static void _properties_window(Camera * camera)
 	} capabilities[] =
 	{
 		{ V4L2_CAP_VIDEO_CAPTURE,	"video capture"	},
+#ifdef V4L2_CAP_VIDEO_OUTPUT
 		{ V4L2_CAP_VIDEO_OUTPUT,	"video output"	},
+#endif
+#ifdef V4L2_CAP_VIDEO_OVERLAY
 		{ V4L2_CAP_VIDEO_OVERLAY,	"video overlay"	},
+#endif
+#ifdef V4L2_CAP_VBI_CAPTURE
 		{ V4L2_CAP_VBI_CAPTURE,		"VBI capture"	},
+#endif
+#ifdef V4L2_CAP_VBI_OUTPUT
 		{ V4L2_CAP_VBI_OUTPUT,		"VBI output"	},
+#endif
+#ifdef V4L2_CAP_RDS_CAPTURE
 		{ V4L2_CAP_RDS_CAPTURE,		"RDS capture"	},
+#endif
+#ifdef V4L2_CAP_RDS_OUTPUT
 		{ V4L2_CAP_RDS_OUTPUT,		"RDS encoder"	},
+#endif
+#ifdef V4L2_CAP_TUNER
 		{ V4L2_CAP_TUNER,		"tuner"		},
+#endif
+#ifdef V4L2_CAP_AUDIO
 		{ V4L2_CAP_AUDIO,		"audio"		},
+#endif
+#ifdef V4L2_CAP_RADIO
 		{ V4L2_CAP_RADIO,		"radio"		},
+#endif
+#ifdef V4L2_CAP_MODULATOR
 		{ V4L2_CAP_MODULATOR,		"modulator"	},
+#endif
 		{ V4L2_CAP_READWRITE,		"read/write"	},
+#ifdef V4L2_CAP_ASYNCIO
 		{ V4L2_CAP_ASYNCIO,		"async I/O"	},
+#endif
 		{ V4L2_CAP_STREAMING,		"streaming"	},
+#ifdef V4L2_CAP_TOUCH
 		{ V4L2_CAP_TOUCH,		"touch"		}
+#endif
 	};
 	unsigned int i;
 	char const * sep = "";
