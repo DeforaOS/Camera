@@ -895,8 +895,7 @@ static void _properties_window(Camera * camera)
 		{ V4L2_CAP_READWRITE,		"read/write"	},
 		{ V4L2_CAP_ASYNCIO,		"async I/O"	},
 		{ V4L2_CAP_STREAMING,		"streaming"	},
-		{ V4L2_CAP_TOUCH,		"touch"		},
-		{ 0,				NULL		}
+		{ V4L2_CAP_TOUCH,		"touch"		}
 	};
 	unsigned int i;
 	char const * sep = "";
@@ -938,7 +937,7 @@ static void _properties_window(Camera * camera)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 	/* capabilities */
 	buf[0] = '\0';
-	for(i = 0; capabilities[i].name != NULL; i++)
+	for(i = 0; i < sizeof(capabilities) / sizeof(*capabilities); i++)
 		if(camera->cap.capabilities & capabilities[i].capability)
 		{
 			strncat(buf, sep, sizeof(buf) - strlen(buf) - 1);
