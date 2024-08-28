@@ -1419,9 +1419,7 @@ static void _camera_on_gallery(gpointer data)
 
 /* camera_on_open */
 static int _open_setup(Camera * camera);
-#ifdef NOTYET
 static int _open_setup_mmap(Camera * camera);
-#endif
 static int _open_setup_read(Camera * camera);
 
 static gboolean _camera_on_open(gpointer data)
@@ -1517,11 +1515,10 @@ static int _open_setup(Camera * camera)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Unsupported video capture type"));
 	if((camera->cap.capabilities & V4L2_CAP_STREAMING) != 0)
-#ifdef NOTYET
-		ret = _open_setup_mmap(camera);
-#else
-		ret = _open_setup_read(camera);
-#endif
+	{
+		if((ret = _open_setup_mmap(camera)) != 0)
+			ret = _open_setup_read(camera);
+	}
 	else if((camera->cap.capabilities & V4L2_CAP_READWRITE) != 0)
 		ret = _open_setup_read(camera);
 	else
@@ -1545,12 +1542,12 @@ static int _open_setup(Camera * camera)
 	return 0;
 }
 
-#ifdef NOTYET
 static int _open_setup_mmap(Camera * camera)
 {
 	struct v4l2_requestbuffers req;
 	size_t i;
 	struct v4l2_buffer buf;
+	enum v4l2_buf_type type;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -1593,9 +1590,13 @@ static int _open_setup_mmap(Camera * camera)
 					_("Could not map buffers"));
 		camera->buffers[i].length = buf.length;
 	}
+	/* start the stream */
+	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if(_camera_ioctl(camera, VIDIOC_STREAMON, &type) == -1)
+		return -error_set_code(1, "%s: %s", camera->device,
+				_("Could not start the stream"));
 	return 0;
 }
-#endif
 
 static int _open_setup_read(Camera * camera)
 {
