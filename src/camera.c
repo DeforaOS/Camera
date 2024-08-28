@@ -122,7 +122,9 @@ struct _Camera
 	GtkWidget * widget;
 	GtkWidget * window;
 	PangoFontDescription * bold;
-#if !GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 0, 0)
+	cairo_surface_t * surface;
+#else
 	GdkGC * gc;
 #endif
 #if GTK_CHECK_VERSION(2, 18, 0)
@@ -185,14 +187,14 @@ static gboolean _camera_on_can_mmap(GIOChannel * channel,
 		GIOCondition condition, gpointer data);
 static gboolean _camera_on_can_read(GIOChannel * channel,
 		GIOCondition condition, gpointer data);
+static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
+		GdkEventConfigure * event, gpointer data);
 #if GTK_CHECK_VERSION(3, 0, 0)
 static gboolean _camera_on_drawing_area_draw(GtkWidget * widget, cairo_t * cr,
 		gpointer data);
 static void _camera_on_drawing_area_size_allocate(GtkWidget * widget,
 		GdkRectangle * allocation, gpointer data);
 #else
-static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
-		GdkEventConfigure * event, gpointer data);
 static gboolean _camera_on_drawing_area_expose(GtkWidget * widget,
 		GdkEventExpose * event, gpointer data);
 #endif
@@ -269,7 +271,9 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 	camera->widget = NULL;
 	camera->window = window;
 	camera->bold = NULL;
-#if !GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 0, 0)
+	camera->surface = NULL;
+#else
 	camera->gc = NULL;
 #endif
 	camera->pr_window = NULL;
@@ -328,14 +332,14 @@ Camera * camera_new(GtkWidget * window, GtkAccelGroup * group,
 #if !GTK_CHECK_VERSION(3, 0, 0)
 	camera->pixmap = NULL;
 #endif
+	g_signal_connect(camera->area, "configure-event", G_CALLBACK(
+				_camera_on_drawing_area_configure), camera);
 #if GTK_CHECK_VERSION(3, 0, 0)
 	g_signal_connect(camera->area, "draw", G_CALLBACK(
 				_camera_on_drawing_area_draw), camera);
 	g_signal_connect(camera->area, "size-allocate", G_CALLBACK(
 				_camera_on_drawing_area_size_allocate), camera);
 #else
-	g_signal_connect(camera->area, "configure-event", G_CALLBACK(
-				_camera_on_drawing_area_configure), camera);
 	g_signal_connect(camera->area, "expose-event", G_CALLBACK(
 				_camera_on_drawing_area_expose), camera);
 #endif
@@ -1171,7 +1175,11 @@ void camera_stop(Camera * camera)
 	if(camera->pixbuf != NULL)
 		g_object_unref(camera->pixbuf);
 	camera->pixbuf = NULL;
-#if !GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 0, 0)
+	if(camera->surface != NULL)
+		cairo_surface_destroy(camera->surface);
+	camera->surface = NULL;
+#else
 	if(camera->pixmap != NULL)
 		g_object_unref(camera->pixmap);
 	camera->pixmap = NULL;
@@ -1342,6 +1350,33 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 
 
 #if GTK_CHECK_VERSION(3, 0, 0)
+/* camera_on_drawing_area_configure */
+static gboolean _camera_on_drawing_area_configure(GtkWidget * widget,
+		GdkEventConfigure * event, gpointer data)
+{
+	Camera * camera = data;
+	GtkAllocation * allocation = &camera->area_allocation;
+	cairo_t * cr;
+	(void) event;
+
+	gtk_widget_get_allocation(widget, allocation);
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %dx%d\n", __func__, allocation->width,
+			allocation->height);
+#endif
+	if(camera->surface != NULL)
+		cairo_surface_destroy(camera->surface);
+	camera->surface = gdk_window_create_similar_surface(
+			gtk_widget_get_window(widget), CAIRO_CONTENT_COLOR,
+			allocation->width, allocation->height);
+	cr = cairo_create(camera->surface);
+	cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+	cairo_paint(cr);
+	cairo_destroy(cr);
+	return TRUE;
+}
+
+
 /* camera_on_drawing_area_draw */
 static gboolean _camera_on_drawing_area_draw(GtkWidget * widget, cairo_t * cr,
 		gpointer data)
@@ -1350,14 +1385,11 @@ static gboolean _camera_on_drawing_area_draw(GtkWidget * widget, cairo_t * cr,
 	(void) widget;
 
 #ifdef DEBUG
-	fprintf(stderr, "DEBUG: %s() %p\n", __func__, camera->pixbuf);
+	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
-	if(camera->pixbuf != NULL)
-	{
-		gdk_cairo_set_source_pixbuf(cr, camera->pixbuf, 0, 0);
-		cairo_paint(cr);
-	}
-	return TRUE;
+	cairo_set_source_surface(cr, camera->surface, 0, 0);
+	cairo_paint(cr);
+	return FALSE;
 }
 
 
@@ -1684,9 +1716,10 @@ static void _refresh_vflip(Camera * camera, GdkPixbuf ** pixbuf);
 static gboolean _camera_on_refresh(gpointer data)
 {
 	Camera * camera = data;
-#if !GTK_CHECK_VERSION(3, 0, 0)
-	GtkAllocation * allocation = &camera->area_allocation;
+#if GTK_CHECK_VERSION(3, 0, 0)
+	cairo_t * cr;
 #endif
+	GtkAllocation * allocation = &camera->area_allocation;
 	int width = camera->format.fmt.pix.width;
 	int height = camera->format.fmt.pix.height;
 
@@ -1695,22 +1728,34 @@ static gboolean _camera_on_refresh(gpointer data)
 			camera->format.fmt.pix.pixelformat);
 #endif
 	_refresh_convert(camera);
-#if !GTK_CHECK_VERSION(3, 0, 0)
 	if(camera->hflip == FALSE
 			&& camera->vflip == FALSE
 			&& width == allocation->width
 			&& height == allocation->height
 			&& camera->overlays_cnt == 0)
+	{
 		/* render directly */
+#if GTK_CHECK_VERSION(3, 0, 0)
+		cr = cairo_create(camera->surface);
+		if(camera->pixbuf != NULL)
+			g_object_unref(camera->pixbuf);
+		camera->pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
+				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
+				width * 3, NULL, NULL);
+		gdk_cairo_set_source_pixbuf(cr, camera->pixbuf, 0.0, 0.0);
+		cairo_paint(cr);
+		cairo_destroy(cr);
+#else
 		gdk_draw_rgb_image(camera->pixmap, camera->gc, 0, 0,
 				width, height, GDK_RGB_DITHER_NORMAL,
 				camera->rgb_buffer, width * 3);
-	else
 #endif
+	}
+	else
 	{
+		/* render after scaling */
 		if(camera->pixbuf != NULL)
 			g_object_unref(camera->pixbuf);
-		/* render after scaling */
 		camera->pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
 				width * 3, NULL, NULL);
@@ -1718,7 +1763,12 @@ static gboolean _camera_on_refresh(gpointer data)
 		_refresh_vflip(camera, &camera->pixbuf);
 		_refresh_scale(camera, &camera->pixbuf);
 		_refresh_overlays(camera, camera->pixbuf);
-#if !GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 0, 0)
+		cr = cairo_create(camera->surface);
+		gdk_cairo_set_source_pixbuf(cr, camera->pixbuf, 0.0, 0.0);
+		cairo_paint(cr);
+		cairo_destroy(cr);
+#else
 		gdk_pixbuf_render_to_drawable(camera->pixbuf, camera->pixmap,
 				camera->gc, 0, 0, 0, 0, -1, -1,
 				GDK_RGB_DITHER_NORMAL, 0, 0);
