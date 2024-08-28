@@ -874,7 +874,7 @@ static void _properties_window(Camera * camera)
 	GtkSizeGroup * group;
 	GtkWidget * vbox;
 	GtkWidget * hbox;
-	char buf[192];
+	char buf[256];
 	const struct
 	{
 		unsigned int capability;
@@ -887,11 +887,15 @@ static void _properties_window(Camera * camera)
 		{ V4L2_CAP_VBI_CAPTURE,		"VBI capture"	},
 		{ V4L2_CAP_VBI_OUTPUT,		"VBI output"	},
 		{ V4L2_CAP_RDS_CAPTURE,		"RDS capture"	},
+		{ V4L2_CAP_RDS_OUTPUT,		"RDS encoder"	},
 		{ V4L2_CAP_TUNER,		"tuner"		},
 		{ V4L2_CAP_AUDIO,		"audio"		},
 		{ V4L2_CAP_RADIO,		"radio"		},
+		{ V4L2_CAP_MODULATOR,		"modulator"	},
+		{ V4L2_CAP_READWRITE,		"read/write"	},
+		{ V4L2_CAP_ASYNCIO,		"async I/O"	},
 		{ V4L2_CAP_STREAMING,		"streaming"	},
-		{ V4L2_CAP_TIMEPERFRAME,	"time per frame"},
+		{ V4L2_CAP_TOUCH,		"touch"		},
 		{ 0,				NULL		}
 	};
 	unsigned int i;
