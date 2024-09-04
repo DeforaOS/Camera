@@ -94,6 +94,7 @@ struct _Camera
 
 	guint source;
 	int fd;
+	struct v4l2_buffer buf;
 	struct v4l2_capability cap;
 	struct v4l2_format format;
 
@@ -1190,15 +1191,20 @@ void camera_stop(Camera * camera)
 	if((char *)camera->rgb_buffer != camera->raw_buffer)
 		free(camera->rgb_buffer);
 	camera->rgb_buffer = NULL;
-	for(i = 0; i < camera->buffers_cnt; i++)
-		if(camera->buffers[i].start != MAP_FAILED)
-			munmap(camera->buffers[i].start,
-					camera->buffers[i].length);
-	free(camera->buffers);
-	camera->buffers = NULL;
-	camera->buffers_cnt = 0;
-	free(camera->raw_buffer);
+	if(camera->buffers_cnt > 0)
+	{
+		for(i = 0; i < camera->buffers_cnt; i++)
+			if(camera->buffers[i].start != MAP_FAILED)
+				munmap(camera->buffers[i].start,
+						camera->buffers[i].length);
+		free(camera->buffers);
+		camera->buffers = NULL;
+		camera->buffers_cnt = 0;
+	}
+	else
+		free(camera->raw_buffer);
 	camera->raw_buffer = NULL;
+	camera->raw_buffer_cnt = 0;
 }
 
 
@@ -1275,29 +1281,38 @@ static gboolean _camera_on_can_mmap(GIOChannel * channel,
 		GIOCondition condition, gpointer data)
 {
 	Camera * camera = data;
-	struct v4l2_buffer buf;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
 #endif
 	if(channel != camera->channel || condition != G_IO_IN)
 		return FALSE;
-	if(_camera_ioctl(camera, VIDIOC_DQBUF, &buf) == -1)
+	memset(&camera->buf, 0, sizeof(camera->buf));
+	camera->buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	camera->buf.memory = V4L2_MEMORY_MMAP;
+	if(_camera_ioctl(camera, VIDIOC_DQBUF, &camera->buf) == -1)
 	{
-		_camera_error(camera, _("Could not save picture"), 1);
+		_camera_error(camera, _("Could not dequeue buffer"), 1);
+		camera->source = 0;
 		return FALSE;
 	}
-	camera->raw_buffer = camera->buffers[buf.index].start;
-	camera->raw_buffer_cnt = buf.bytesused;
-#if 0 /* FIXME the raw buffer is not meant to be free()'d */
+	if(camera->buf.index >= camera->buffers_cnt)
+	{
+#ifdef DEBUG
+		fprintf(stderr, "DEBUG: %s() %u >= %zu\n", __func__,
+				camera->buf.index, camera->buffers_cnt);
+#endif
+		_camera_error(camera, _("Invalid buffer index"), 1);
+		camera->source = 0;
+		return FALSE;
+	}
+	camera->raw_buffer = camera->buffers[camera->buf.index].start;
+	camera->raw_buffer_cnt = camera->buffers[camera->buf.index].length;
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() %lu\n", __func__, camera->raw_buffer_cnt);
+#endif
 	camera->source = g_idle_add(_camera_on_refresh, camera);
 	return FALSE;
-#else
-	_camera_on_refresh(camera);
-	camera->raw_buffer = NULL;
-	camera->raw_buffer_cnt = 0;
-	return TRUE;
-#endif
 }
 
 
@@ -1315,6 +1330,7 @@ static gboolean _camera_on_can_read(GIOChannel * channel,
 #endif
 	if(channel != camera->channel || condition != G_IO_IN)
 		return FALSE;
+	size = camera->raw_buffer_cnt;
 	status = g_io_channel_read_chars(channel, camera->raw_buffer,
 			camera->raw_buffer_cnt, &size, &error);
 	/* this status can be ignored */
@@ -1575,8 +1591,13 @@ static int _open_setup(Camera * camera)
 				_("Unsupported video capture type"));
 	if((camera->cap.capabilities & V4L2_CAP_STREAMING) != 0)
 	{
-		if((ret = _open_setup_mmap(camera)) != 0)
+		if((ret = _open_setup_mmap(camera)) != 0
+				&& (camera->cap.capabilities
+					& V4L2_CAP_READWRITE) != 0)
+		{
+			camera_stop(camera);
 			ret = _open_setup_read(camera);
+		}
 	}
 	else if((camera->cap.capabilities & V4L2_CAP_READWRITE) != 0)
 		ret = _open_setup_read(camera);
@@ -1607,6 +1628,8 @@ static int _open_setup_mmap(Camera * camera)
 	size_t i;
 	struct v4l2_buffer buf;
 	enum v4l2_buf_type type;
+	size_t cnt;
+	char * p;
 
 #ifdef DEBUG
 	fprintf(stderr, "DEBUG: %s()\n", __func__);
@@ -1618,17 +1641,18 @@ static int _open_setup_mmap(Camera * camera)
 	if(_camera_ioctl(camera, VIDIOC_REQBUFS, &req) == -1)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Could not request buffers"));
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG: %s() frames=%u\n", __func__, req.count);
+#endif
 	if(req.count < 2)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Could not obtain enough buffers"));
-	if((camera->buffers = malloc(sizeof(*camera->buffers) * req.count))
+	/* initialize the buffers */
+	if((camera->buffers = calloc(req.count, sizeof(*camera->buffers)))
 			== NULL)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Could not allocate buffers"));
 	camera->buffers_cnt = req.count;
-	/* initialize the buffers */
-	memset(camera->buffers, 0, sizeof(*camera->buffers)
-			* camera->buffers_cnt);
 	for(i = 0; i < camera->buffers_cnt; i++)
 		camera->buffers[i].start = MAP_FAILED;
 	/* map the buffers */
@@ -1649,11 +1673,28 @@ static int _open_setup_mmap(Camera * camera)
 					_("Could not map buffers"));
 		camera->buffers[i].length = buf.length;
 	}
+	for(i = 0; i < camera->buffers_cnt; i++)
+	{
+		memset(&camera->buf, 0, sizeof(camera->buf));
+		camera->buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		camera->buf.memory = V4L2_MEMORY_MMAP;
+		camera->buf.index = i;
+		if(_camera_ioctl(camera, VIDIOC_QBUF, &camera->buf) == -1)
+			return -error_set_code(1, "%s: %s", camera->device,
+					_("Could not queue buffers"));
+	}
 	/* start the stream */
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if(_camera_ioctl(camera, VIDIOC_STREAMON, &type) == -1)
 		return -error_set_code(1, "%s: %s", camera->device,
 				_("Could not start the stream"));
+	/* allocate the RGB buffer */
+	cnt = camera->format.fmt.pix.width * camera->format.fmt.pix.height * 3;
+	if((p = realloc(camera->rgb_buffer, cnt)) == NULL)
+		return error_set_code(-errno, "%s: %s", camera->device,
+				strerror(errno));
+	camera->rgb_buffer = (unsigned char *)p;
+	camera->rgb_buffer_cnt = cnt;
 	return 0;
 }
 
@@ -1718,8 +1759,8 @@ static gboolean _camera_on_refresh(gpointer data)
 	Camera * camera = data;
 #if GTK_CHECK_VERSION(3, 0, 0)
 	cairo_t * cr;
-#endif
 	GtkAllocation * allocation = &camera->area_allocation;
+#endif
 	int width = camera->format.fmt.pix.width;
 	int height = camera->format.fmt.pix.height;
 
@@ -1737,8 +1778,6 @@ static gboolean _camera_on_refresh(gpointer data)
 		/* render directly */
 #if GTK_CHECK_VERSION(3, 0, 0)
 		cr = cairo_create(camera->surface);
-		if(camera->pixbuf != NULL)
-			g_object_unref(camera->pixbuf);
 		camera->pixbuf = gdk_pixbuf_new_from_data(camera->rgb_buffer,
 				GDK_COLORSPACE_RGB, FALSE, 8, width, height,
 				width * 3, NULL, NULL);
@@ -1776,9 +1815,20 @@ static gboolean _camera_on_refresh(gpointer data)
 	}
 	/* force a refresh */
 	gtk_widget_queue_draw(camera->area);
-	camera->source = g_io_add_watch(camera->channel, G_IO_IN,
-			(camera->buffers != NULL) ? _camera_on_can_mmap
-			: _camera_on_can_read, camera);
+	/* read from the camera again */
+	if(camera->buffers != NULL)
+	{
+		if(_camera_ioctl(camera, VIDIOC_QBUF, &camera->buf) == -1)
+		{
+			fprintf(stderr, "%s\n", strerror(errno));
+			_camera_error(camera, _("Could not queue buffer"), 1);
+		}
+		camera->source = g_io_add_watch(camera->channel, G_IO_IN,
+				_camera_on_can_mmap, camera);
+	}
+	else
+		camera->source = g_io_add_watch(camera->channel, G_IO_IN,
+				_camera_on_can_read, camera);
 	return FALSE;
 }
 
