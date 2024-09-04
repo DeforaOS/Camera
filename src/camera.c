@@ -1533,9 +1533,6 @@ static gboolean _camera_on_open(gpointer data)
 	gtk_widget_set_sensitive(
 			GTK_WIDGET(_camera_toolbar[CT_PROPERTIES].widget),
 			TRUE);
-	/* FIXME allow the window to be smaller */
-	gtk_widget_set_size_request(camera->area, camera->format.fmt.pix.width,
-			camera->format.fmt.pix.height);
 	return FALSE;
 }
 

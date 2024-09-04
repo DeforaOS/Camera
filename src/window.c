@@ -201,6 +201,7 @@ CameraWindow * camerawindow_new(char const * device)
 # endif
 	gtk_window_set_title(GTK_WINDOW(camera->window), _("Camera"));
 #endif
+	gtk_window_set_default_size(GTK_WINDOW(camera->window), 640, 480);
 	g_signal_connect_swapped(camera->window, "delete-event", G_CALLBACK(
 				_camerawindow_on_closex), camera);
 	g_signal_connect(camera->window, "window-state-event", G_CALLBACK(
