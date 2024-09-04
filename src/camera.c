@@ -1711,7 +1711,7 @@ static int _open_setup_read(Camera * camera)
 				strerror(errno));
 	camera->raw_buffer = p;
 	camera->raw_buffer_cnt = cnt;
-	/* allocate the rgb buffer */
+	/* allocate the RGB buffer */
 	cnt = camera->format.fmt.pix.width * camera->format.fmt.pix.height * 3;
 	if((p = realloc(camera->rgb_buffer, cnt)) == NULL)
 		return error_set_code(-errno, "%s: %s", camera->device,
