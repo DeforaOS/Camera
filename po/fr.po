@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Camera 0.1.0\n"
+"Project-Id-Version: Camera 0.3.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-23 20:01+0100\n"
-"PO-Revision-Date: 2013-01-18 22:31+0100\n"
+"POT-Creation-Date: 2024-07-30 02:46+0200\n"
+"PO-Revision-Date: 2025-02-20 17:45+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -102,65 +102,65 @@ msgstr "Version : "
 msgid "Capabilities: "
 msgstr "Capacités : "
 
-#: ../src/camera.c:1005 ../src/camera.c:1009 ../src/camera.c:1028
-#: ../src/camera.c:1047 ../src/camera.c:1073 ../src/camera.c:1093
-#: ../src/camera.c:1246
+#: ../src/camera.c:1005 ../src/camera.c:1009 ../src/camera.c:1029
+#: ../src/camera.c:1048 ../src/camera.c:1074 ../src/camera.c:1094
+#: ../src/camera.c:1247
 msgid "Could not save picture"
 msgstr "Impossible d'enregistrer l'image"
 
-#: ../src/camera.c:1095
+#: ../src/camera.c:1096
 msgid "Unknown error"
 msgstr "Erreur inconnue"
 
-#: ../src/camera.c:1199 ../src/camera.c:1203
+#: ../src/camera.c:1200 ../src/camera.c:1204
 msgid "Error"
 msgstr "Erreur"
 
-#: ../src/camera.c:1432
+#: ../src/camera.c:1433
 msgid "Could not open the video capture device"
 msgstr "Impossible d'ouvrir le périphérique de capture vidéo"
 
-#: ../src/camera.c:1473
+#: ../src/camera.c:1474
 msgid "Could not obtain the capabilities"
 msgstr "Impossible d'obtenir les capacités"
 
-#: ../src/camera.c:1477
+#: ../src/camera.c:1478
 msgid "Not a video capture device"
 msgstr "Pas de périphérique de capture vidéo"
 
-#: ../src/camera.c:1490
+#: ../src/camera.c:1491
 msgid "Cropping not supported"
 msgstr "Recadrage non supporté"
 
-#: ../src/camera.c:1495
+#: ../src/camera.c:1497
 msgid "Could not obtain the video capture format"
 msgstr "Impossible d'obtenir le format de capture vidéo"
 
-#: ../src/camera.c:1499
+#: ../src/camera.c:1501
 msgid "Unsupported video capture type"
 msgstr "Type de capture vidéo non supporté"
 
-#: ../src/camera.c:1510
+#: ../src/camera.c:1512
 msgid "Unsupported capabilities"
 msgstr "Capacités non supportées"
 
-#: ../src/camera.c:1545
+#: ../src/camera.c:1547
 msgid "Could not request buffers"
 msgstr "Impossible de demander le cache"
 
-#: ../src/camera.c:1548
+#: ../src/camera.c:1550
 msgid "Could not obtain enough buffers"
 msgstr "Impossible d'obtenir suffisamment de cache"
 
-#: ../src/camera.c:1552
+#: ../src/camera.c:1554
 msgid "Could not allocate buffers"
 msgstr "Impossible d'allouer le cache"
 
-#: ../src/camera.c:1568
+#: ../src/camera.c:1570
 msgid "Could not setup buffers"
 msgstr "Impossible de configurer le cache"
 
-#: ../src/camera.c:1574
+#: ../src/camera.c:1576
 msgid "Could not map buffers"
 msgstr "Impossible d'étaler le cache"
 

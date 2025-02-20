@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Camera 0.1.0\n"
+"Project-Id-Version: Camera 0.3.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-23 20:01+0100\n"
-"PO-Revision-Date: 2015-02-16 07:20+0100\n"
+"POT-Creation-Date: 2024-07-30 02:46+0200\n"
+"PO-Revision-Date: 2025-02-20 17:45+0100\n"
 "Last-Translator: Pierre Pronchery <khorben@defora.org>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #: ../src/camera.c:216
 msgid "Gallery"
-msgstr ""
+msgstr "Galería"
 
 #: ../src/camera.c:220 ../src/camera.c:227 ../src/camera.c:899
 #: ../src/camera.c:909
@@ -36,7 +36,7 @@ msgstr "Preferencias"
 
 #: ../src/camera.c:303
 msgid "Fullscreen"
-msgstr ""
+msgstr "Pantalla completa"
 
 #: ../src/camera.c:701
 msgid "Nearest"
@@ -72,7 +72,7 @@ msgstr ""
 
 #: ../src/camera.c:759
 msgid "Picture"
-msgstr ""
+msgstr "Imagen"
 
 #: ../src/camera.c:765
 msgid "Format: "
@@ -102,65 +102,65 @@ msgstr ""
 msgid "Capabilities: "
 msgstr ""
 
-#: ../src/camera.c:1005 ../src/camera.c:1009 ../src/camera.c:1028
-#: ../src/camera.c:1047 ../src/camera.c:1073 ../src/camera.c:1093
-#: ../src/camera.c:1246
+#: ../src/camera.c:1005 ../src/camera.c:1009 ../src/camera.c:1029
+#: ../src/camera.c:1048 ../src/camera.c:1074 ../src/camera.c:1094
+#: ../src/camera.c:1247
 msgid "Could not save picture"
 msgstr ""
 
-#: ../src/camera.c:1095
+#: ../src/camera.c:1096
 msgid "Unknown error"
 msgstr ""
 
-#: ../src/camera.c:1199 ../src/camera.c:1203
+#: ../src/camera.c:1200 ../src/camera.c:1204
 msgid "Error"
 msgstr "Error"
 
-#: ../src/camera.c:1432
+#: ../src/camera.c:1433
 msgid "Could not open the video capture device"
 msgstr ""
 
-#: ../src/camera.c:1473
+#: ../src/camera.c:1474
 msgid "Could not obtain the capabilities"
 msgstr ""
 
-#: ../src/camera.c:1477
+#: ../src/camera.c:1478
 msgid "Not a video capture device"
 msgstr ""
 
-#: ../src/camera.c:1490
+#: ../src/camera.c:1491
 msgid "Cropping not supported"
 msgstr ""
 
-#: ../src/camera.c:1495
+#: ../src/camera.c:1497
 msgid "Could not obtain the video capture format"
 msgstr ""
 
-#: ../src/camera.c:1499
+#: ../src/camera.c:1501
 msgid "Unsupported video capture type"
 msgstr ""
 
-#: ../src/camera.c:1510
+#: ../src/camera.c:1512
 msgid "Unsupported capabilities"
 msgstr ""
 
-#: ../src/camera.c:1545
+#: ../src/camera.c:1547
 msgid "Could not request buffers"
 msgstr ""
 
-#: ../src/camera.c:1548
+#: ../src/camera.c:1550
 msgid "Could not obtain enough buffers"
 msgstr ""
 
-#: ../src/camera.c:1552
+#: ../src/camera.c:1554
 msgid "Could not allocate buffers"
 msgstr ""
 
-#: ../src/camera.c:1568
+#: ../src/camera.c:1570
 msgid "Could not setup buffers"
 msgstr ""
 
-#: ../src/camera.c:1574
+#: ../src/camera.c:1576
 msgid "Could not map buffers"
 msgstr ""
 
@@ -201,7 +201,7 @@ msgstr "_Preferencias"
 
 #: ../src/window.c:132
 msgid "_Fullscreen"
-msgstr ""
+msgstr "_Pantalla completa"
 
 #: ../src/window.c:143
 msgid "_Contents"
@@ -233,7 +233,7 @@ msgstr ""
 
 #: ../src/window.c:202
 msgid "Camera"
-msgstr ""
+msgstr "Cámara"
 
 #: ../src/window.c:422
 msgid "Simple webcam application for the DeforaOS desktop"
